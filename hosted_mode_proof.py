@@ -9,7 +9,8 @@ import websockets
 
 ROOT = os.environ.get("PROOF_ROOT", "http://127.0.0.1:8010")
 BASE = f"{ROOT}/api/v1"
-WS_URL = f"ws://{ROOT.split('://', 1)[1]}/api/v1/ws/alerts?token={{tok}}"
+_ws_scheme = "wss" if ROOT.startswith("https://") else "ws"
+WS_URL = f"{_ws_scheme}://{ROOT.split('://', 1)[1]}/api/v1/ws/alerts?token={{tok}}"
 
 
 async def main() -> None:
