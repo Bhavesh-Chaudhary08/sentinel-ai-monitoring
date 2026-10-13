@@ -1,0 +1,6 @@
+# PII detection tier: spaCy + Microsoft Presidio.
+# Installed in the Docker image when build-arg INSTALL_NLP=1 (default).
+# The code imports these lazily and falls back to regex redaction if missing.
+spacy==3.8.2
+presidio-analyzer==2.2.35
+presidio-anonymizer==2.2.35

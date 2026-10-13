@@ -1,0 +1,8 @@
+# Semantic classification tier: sentence-transformers.
+# Installed when build-arg INSTALL_ML=1 (default).
+#
+# The CPU wheel index keeps torch ~10x smaller than the default CUDA build.
+# If sentence-transformers (or torch) is missing, the pipeline automatically
+# falls back to the lexical similarity scorer — see README "Lightweight mode".
+--extra-index-url https://download.pytorch.org/whl/cpu
+sentence-transformers==3.3.1

@@ -1,0 +1,18 @@
+{
+  "name": "aidlp-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MV3 capture layer for the AI Usage Monitoring & DLP system (consented, transparent)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:share": "node package-share.mjs",
+    "dev": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.0.287",
+    "esbuild": "0.24.0",
+    "typescript": "5.7.2"
+  }
+}

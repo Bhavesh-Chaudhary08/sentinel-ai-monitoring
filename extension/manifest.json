@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Sentinel — AI Usage Monitor (enrolled devices)",
+  "version": "0.1.0",
+  "description": "Transparent, consented capture of generative-AI prompts/responses with content-aware DLP on org-enrolled devices. Monitoring state is always visible.",
+  "minimum_chrome_version": "114",
+  "permissions": [
+    "storage",
+    "scripting",
+    "webNavigation",
+    "alarms",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AI Usage Monitor status"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://claude.ai/*",
+        "https://copilot.microsoft.com/*",
+        "https://github.com/*",
+        "https://perplexity.ai/*",
+        "https://poe.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

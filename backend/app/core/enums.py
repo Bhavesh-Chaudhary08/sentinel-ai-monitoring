@@ -1,0 +1,66 @@
+"""Shared enums.
+
+Member *names* are kept identical to their values on purpose: SQLModel maps
+(str, Enum) fields to native Postgres ENUM columns, and SQLAlchemy persists
+the member name while Pydantic serializes the value — identical names remove
+any ambiguity about what ends up in the database.
+"""
+
+from enum import Enum
+
+
+class UserRole(str, Enum):
+    admin = "admin"
+    employee = "employee"
+
+
+class AiTool(str, Enum):
+    chatgpt = "chatgpt"
+    gemini = "gemini"
+    claude = "claude"
+    copilot = "copilot"
+    other = "other"
+
+
+class RiskCategory(str, Enum):
+    none = "none"
+    pii = "pii"
+    source_code = "source_code"
+    financial = "financial"
+    confidential = "confidential"
+    credentials = "credentials"
+    other = "other"
+
+
+class PolicyAction(str, Enum):
+    log_only = "log_only"
+    warn = "warn"
+    block = "block"
+
+
+class AlertSeverity(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+    critical = "critical"
+
+
+class AlertStatus(str, Enum):
+    triggered = "triggered"
+    acknowledged = "acknowledged"
+    resolved = "resolved"
+    false_positive = "false_positive"
+
+
+class ClassificationStatus(str, Enum):
+    pending = "pending"
+    complete = "complete"
+    failed = "failed"
+    skipped = "skipped"  # navigation/visit events carry no prompt to classify
+
+
+class ShadowRisk(str, Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+    unknown = "unknown"

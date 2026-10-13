@@ -1,0 +1,48 @@
+# Single-service image for free-hosting platforms (Koyeb, Render, ...):
+# builds the dashboard, bundles it INTO the API image, runs migrations on
+# boot — one process, one origin, no Redis/Celery (CLASSIFY_SYNC=true).
+#
+#   docker build -f Dockerfile.paaS -t sentinel-paas .
+#   docker run -p 8000:8000 -e DATABASE_URL=... -e SECRET_KEY=... sentinel-paas
+#
+# Free-tier sized on purpose: no spaCy/Presidio/torch — classification runs
+# the regex + lexical tiers inline, which fits the 512 MB free-instance limit.
+
+FROM node:20-alpine AS dashboard
+WORKDIR /fe
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /srv/backend
+
+# libpq5: runtime lib for psycopg2-binary; curl: platform health checks.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpq5 curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements.txt ./
+RUN pip install -r requirements.txt
+
+COPY backend/ ./
+COPY --from=dashboard /fe/dist /srv/frontend
+
+# Hosted defaults (overridable per service):
+#   CLASSIFY_SYNC       → classify in-process, no Celery/Redis
+#   SEMANTIC/PRESIDIO   → off: regex+lexical tiers only, small image & footprint
+#   FRONTEND_DIR        → serve the dashboard from this process (single origin)
+ENV CLASSIFY_SYNC=true \
+    SEMANTIC_ENABLED=false \
+    PRESIDIO_ENABLED=false \
+    ENVIRONMENT=production \
+    FRONTEND_DIR=/srv/frontend
+
+EXPOSE 8000
+# Migrate then serve; ${PORT} is what PaaS platforms inject (Render: 10000).
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

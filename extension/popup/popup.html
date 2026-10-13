@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI Usage Monitor</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="logo">🛡️</span>
+        <div>
+          <strong>AI Usage Monitor</strong>
+          <div class="sub" id="header-sub">enrolled device · transparent capture</div>
+        </div>
+      </div>
+      <span id="status-dot" class="dot off" title="Monitoring state"></span>
+    </header>
+
+    <!-- state: loading -->
+    <section id="view-loading" class="view">
+      <p class="muted">Loading status…</p>
+    </section>
+
+    <!-- state: signed out -->
+    <section id="view-login" class="view hidden">
+      <p class="muted">
+        Sign in with your <strong>organization account</strong> to link this
+        browser to your employee profile.
+      </p>
+      <form id="login-form">
+        <label for="email">Work email</label>
+        <input id="email" type="email" autocomplete="username" required placeholder="you@corp.example" />
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required />
+        <button type="submit" id="login-btn">Sign in</button>
+        <p id="login-error" class="error hidden"></p>
+      </form>
+      <p class="muted">
+        No account yet? <a href="#" id="register-link">Create one</a>
+      </p>
+    </section>
+
+    <!-- state: signed in, consent not yet given -->
+    <section id="view-consent" class="view hidden">
+      <h2>Enable monitoring</h2>
+      <div class="notice">
+        <p>Before capture starts, here is exactly what this extension does:</p>
+        <ul>
+          <li>Captures prompts/responses you send to <strong>approved AI tools</strong></li>
+          <li>Checks prompts against DLP policy <em>before</em> sending (can block)</li>
+          <li>Flags first-time visits to unknown AI sites (domain + UI markers only)</li>
+          <li><strong>Full text is stored only if flagged</strong>; otherwise hash + masked preview</li>
+          <li>You can always view your own logged activity in the dashboard</li>
+        </ul>
+        <p class="muted" id="consent-version">Policy version: —</p>
+      </div>
+      <button id="consent-btn" class="primary">I understand — enable monitoring</button>
+      <p id="consent-error" class="error hidden"></p>
+    </section>
+
+    <!-- state: active -->
+    <section id="view-active" class="view hidden">
+      <div class="active-banner">
+        <span class="dot on"></span>
+        <div>
+          <strong>Monitoring active</strong>
+          <div class="sub" id="active-sub">—</div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span id="stat-total">–</span><label>messages today</label></div>
+        <div class="stat"><span id="stat-flagged">–</span><label>flagged</label></div>
+        <div class="stat"><span id="stat-queued">–</span><label>queued</label></div>
+      </div>
+      <div class="actions">
+        <button id="dashboard-btn" class="primary">Open dashboard</button>
+        <button id="logout-btn" class="ghost">Sign out</button>
+      </div>
+      <p id="active-error" class="error hidden"></p>
+    </section>
+
+    <footer>
+      <span id="footer-api">—</span>
+      <span id="footer-version">v0.1.0</span>
+    </footer>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+# Single public origin for the whole app: dashboard + /api + alert WebSocket.
+# DOMAIN is provided by docker compose from your .env; Caddy provisions and
+# renews the Let's Encrypt certificate automatically (ports 80 + 443 open).
+{$DOMAIN} {
+	encode gzip
+
+	# The frontend nginx serves the SPA and reverse-proxies /api to the API
+	# container — so everything is same-origin (no CORS, WebSocket works).
+	reverse_proxy frontend:80
+}

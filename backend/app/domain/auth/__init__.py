@@ -1,0 +1,1 @@
+"""Auth package: authentication + consent recording."""

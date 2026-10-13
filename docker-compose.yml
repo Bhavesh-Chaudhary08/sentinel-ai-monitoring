@@ -1,0 +1,118 @@
+name: aidlp
+
+# All backend services share this environment block.
+x-backend-env: &backend-env
+  DATABASE_URL: "postgresql+psycopg2://${POSTGRES_USER:-aidlp}:${POSTGRES_PASSWORD:-aidlp}@db:5432/${POSTGRES_DB:-aidlp}"
+  REDIS_URL: "redis://redis:6379/0"
+  SECRET_KEY: "${SECRET_KEY:-dev-only-insecure-secret-change-me}"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "${ACCESS_TOKEN_EXPIRE_MINUTES:-480}"
+  CORS_ORIGINS: "${CORS_ORIGINS:-[\"http://localhost:3000\",\"http://localhost:5173\"]}"
+  PRESIDIO_ENABLED: "${PRESIDIO_ENABLED:-true}"
+  SEMANTIC_ENABLED: "${SEMANTIC_ENABLED:-true}"
+  RETENTION_DAYS_DEFAULT: "${RETENTION_DAYS_DEFAULT:-30}"
+  RETENTION_DAYS_FLAGGED: "${RETENTION_DAYS_FLAGGED:-180}"
+  # full = store every prompt verbatim and classify each one (demo/forensic);
+  # minimal = retain raw text only for flagged interactions (hash+preview else).
+  STORAGE_MODE: "${STORAGE_MODE:-full}"
+  RETENTION_DAYS_FULL: "${RETENTION_DAYS_FULL:-30}"
+  # Prompts-only monitoring: AI response text is never stored (default false).
+  CAPTURE_RESPONSES: "${CAPTURE_RESPONSES:-false}"
+
+x-backend: &backend
+  build:
+    context: ./backend
+    args:
+      INSTALL_NLP: "${INSTALL_NLP:-1}"
+      INSTALL_ML: "${INSTALL_ML:-1}"
+  environment: *backend-env
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aidlp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aidlp}
+      POSTGRES_DB: ${POSTGRES_DB:-aidlp}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aidlp} -d ${POSTGRES_DB:-aidlp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  # Queue + pub/sub only. Persistence deliberately disabled (no AOF, no RDB):
+  # prompt text transits the broker transiently and is never written to disk there.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  migrate:
+    <<: *backend
+    command: alembic upgrade head
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *backend
+    command: celery -A app.workers.celery_app worker --loglevel=INFO --concurrency=2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  beat:
+    <<: *backend
+    command: celery -A app.workers.celery_app beat --loglevel=INFO
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # One-shot demo data. Run with: docker compose --profile tools run --rm seed
+  seed:
+    <<: *backend
+    command: python -m app.db.seed
+    restart: "no"
+    profiles: ["tools"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  pgdata:

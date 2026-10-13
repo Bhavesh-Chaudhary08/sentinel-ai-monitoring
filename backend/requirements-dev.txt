@@ -1,0 +1,2 @@
+# Test-only dependencies (also baked into the image so `docker compose run api pytest` works).
+pytest==8.3.4

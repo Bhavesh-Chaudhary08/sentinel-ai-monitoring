@@ -1,0 +1,68 @@
+{
+  "source_code": {
+    "keywords": [
+      "def ", "import ", "class ", "return ", "function ", "const ", "let ",
+      "console.log", "#include", "public static", "try:", "except:", "raise ",
+      "git clone", "stack trace", "traceback", "segfault", "npm install",
+      "pull request", "merge conflict", "refactor", "unit test", "compile error",
+      "lambda ", "async def", "SELECT ", "INSERT INTO", "api endpoint", "regex"
+    ],
+    "examples": [
+      "def parse_config(path: str) -> dict:\n    import yaml\n    with open(path) as f:\n        return yaml.safe_load(f)",
+      "import React, { useState } from 'react';\nexport function Counter() {\n  const [n, setN] = useState(0);\n  return <button onClick={() => setN(n + 1)}>{n}</button>;\n}",
+      "public static void main(String[] args) {\n    try {\n        process(args);\n    } catch (IOException e) {\n        throw new RuntimeException(e);\n    }\n}",
+      "SELECT user_id, prompt_hash FROM captured_interaction WHERE is_flagged = true ORDER BY occurred_at DESC;",
+      "async def fetch_user(db: AsyncSession, user_id: UUID) -> User:\n    result = await db.execute(select(User).where(User.id == user_id))\n    return result.scalar_one()",
+      "git clone git@github.com:org/repo.git && npm install && npm run test -- --coverage"
+    ]
+  },
+  "financial": {
+    "keywords": [
+      "invoice", "wire transfer", "ach payment", "account number", "routing",
+      "revenue", "ebitda", "gross margin", "payroll", "budget", "forecast",
+      "quarterly", "q1", "q2", "q3", "q4", "profit", "loss", "balance sheet",
+      "cash flow", "refund", "vendor payment", "purchase order", "headcount cost",
+      "arpu", "churn rate", "capex", "opex"
+    ],
+    "examples": [
+      "Invoice #4821 for $42,500.00 net-30, wire to account ending 4821, routing 021000021.",
+      "Q3 revenue came in at $4.2M with EBITDA margin of 18%; revise the forecast model accordingly.",
+      "Run payroll for 84 employees on the 25th, total gross $1.9M, plus the contractor wire batch.",
+      "The vendor payment of EUR 120,000 against PO-7781 is overdue; cash flow shows only $2.1M left this quarter.",
+      "Our gross margin dropped to 41% after the discounting; update the balance sheet and cash flow forecast.",
+      "Refund the customer's annual subscription charge of $11,880 to the card ending 4417."
+    ]
+  },
+  "confidential": {
+    "keywords": [
+      "confidential", "internal only", "do not share", "do not distribute",
+      "under embargo", "nda", "proprietary", "roadmap", "launch plan",
+      "unannounced", "acquisition", "merger", "restructuring", "layoff",
+      "board deck", "strategy", "pricing change", "beta program", "all-hands",
+      "secret project", "codename"
+    ],
+    "examples": [
+      "CONFIDENTIAL — internal only. Do not share the Q4 product roadmap outside the company.",
+      "We are under embargo until the launch; the acquisition of Northwind closes Friday pending board approval.",
+      "Draft the board deck: restructuring plan, headcount reduction options, and the unannounced codename \"Falcon\".",
+      "These meeting notes are proprietary under the NDA — do not distribute the pricing change timeline.",
+      "Leak of the all-hands strategy memo: layoffs begin next quarter, share nothing externally.",
+      "Secret beta program invite codes are under embargo until the keynote on Nov 12."
+    ]
+  },
+  "credentials": {
+    "keywords": [
+      "password", "secret key", "api key", "private key", "credential",
+      "access token", "refresh token", "login", "sign in", "otp", "2fa code",
+      "recovery code", "session cookie", "passphrase", "shadow it",
+      "personal account"
+    ],
+    "examples": [
+      "Here is the admin password for the prod database: SuperSecret123!",
+      "Use this API key for the integration: sk_live_51H8xYzAbCdEfGhIjKlMnOpQrStUv.",
+      "My login for the VPN is bhavesh.k and the OTP code they just texted me is 449021.",
+      "Attaching the SSH private key and recovery codes so you can deploy.",
+      "Sharing my personal account credentials for the trial since we ran out of seats."
+    ]
+  }
+}

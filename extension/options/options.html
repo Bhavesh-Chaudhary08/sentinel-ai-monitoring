@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AI Usage Monitor — Options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>AI Usage Monitor — Settings</h1>
+
+      <section>
+        <h2>Backend</h2>
+        <label for="api-base">API base URL</label>
+        <div class="row">
+          <input id="api-base" placeholder="http://localhost:8000/api/v1" />
+          <button id="save-api">Save</button>
+        </div>
+        <p class="hint">Docker default: <code>http://localhost:8000/api/v1</code></p>
+      </section>
+
+      <section>
+        <h2>Known AI platforms</h2>
+        <p class="hint">
+          Fetched from the backend (single source of truth, refreshes hourly).
+          Content capture runs on these domains plus anything the backend
+          approves after the shadow-AI probe.
+        </p>
+        <ul id="domain-list" class="domains"><li class="hint">Loading…</li></ul>
+      </section>
+
+      <section>
+        <h2>Additional domains (local override)</h2>
+        <p class="hint">Comma-separated hosts your organization wants treated as known AI tools.</p>
+        <div class="row">
+          <input id="extra-domains" placeholder="ai.corp.example, chat.internal" />
+          <button id="save-domains">Save</button>
+        </div>
+        <p id="save-msg" class="hint ok"></p>
+      </section>
+
+      <footer>
+        <span>Transparency: capture only runs while signed in with consent recorded; full text is stored only for flagged prompts.</span>
+      </footer>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
