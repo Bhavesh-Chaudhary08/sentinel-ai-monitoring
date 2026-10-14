@@ -26,6 +26,17 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+// The extension popup's "Open dashboard" button hands its session over in
+// the URL fragment (e.g. /#ext_token=…). Fragments are never sent to the
+// server, and we strip it from the URL immediately so it doesn't linger in
+// history — but adopting it REPLACES whatever account the website was last
+// signed in as, so an employee always lands on their own dashboard.
+const handoffMatch = /(?:^|[#&])ext_token=([^&]+)/.exec(window.location.hash);
+if (handoffMatch) {
+  setToken(decodeURIComponent(handoffMatch[1]));
+  window.history.replaceState(null, "", window.location.pathname + window.location.search);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(!!getToken());

@@ -1,7 +1,7 @@
 // Popup: the employee-facing transparency surface.
 // Three states: signed out → consent prompt → monitoring active.
 
-import { api } from "../api/client";
+import { api, getToken } from "../api/client";
 import type { StatusResponse } from "../shared/types";
 
 const $ = <T extends HTMLElement>(sel: string): T => document.querySelector(sel) as T;
@@ -124,8 +124,16 @@ $("#consent-btn").addEventListener("click", async () => {
   }
 });
 
-$("#dashboard-btn").addEventListener("click", () => {
-  void chrome.tabs.create({ url: DASHBOARD_URL });
+$("#dashboard-btn").addEventListener("click", async () => {
+  // Hand THIS popup's session to the dashboard via a URL fragment (never
+  // sent to the server, stripped from the URL on load). Without it the
+  // website opens as whichever account was last signed in there — e.g. the
+  // admin — instead of the user looking at the popup right now.
+  const token = await getToken();
+  const url = token
+    ? `${DASHBOARD_URL}/#ext_token=${encodeURIComponent(token)}`
+    : DASHBOARD_URL;
+  void chrome.tabs.create({ url });
 });
 
 // No sign-up inside the popup — account creation lives on the dashboard.
