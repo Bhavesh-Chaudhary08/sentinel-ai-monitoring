@@ -151,10 +151,30 @@ export interface AuditEntry {
 }
 
 const TOKEN_KEY = "aidlp_token";
+// Tab-scoped session override, used by the extension's "Open dashboard"
+// handoff. sessionStorage is per-tab, so a user opening the dashboard from
+// the extension never overwrites an admin's login in another tab (both tabs
+// share localStorage but each keeps its own token).
+const TAB_TOKEN_KEY = "aidlp_token_tab";
 
-export const getToken = (): string | null => localStorage.getItem(TOKEN_KEY);
-export const setToken = (token: string): void => localStorage.setItem(TOKEN_KEY, token);
-export const clearToken = (): void => localStorage.removeItem(TOKEN_KEY);
+export const getToken = (): string | null =>
+  sessionStorage.getItem(TAB_TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY);
+
+/** Explicit sign-in: shared across tabs, and supersedes any handoff token. */
+export const setToken = (token: string): void => {
+  localStorage.setItem(TOKEN_KEY, token);
+  sessionStorage.removeItem(TAB_TOKEN_KEY);
+};
+
+/** Extension handoff: bound to THIS tab only. */
+export const setTabToken = (token: string): void => {
+  sessionStorage.setItem(TAB_TOKEN_KEY, token);
+};
+
+export const clearToken = (): void => {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TAB_TOKEN_KEY);
+};
 
 export class ApiError extends Error {
   constructor(

@@ -10,6 +10,7 @@ import {
   api,
   clearToken,
   getToken,
+  setTabToken,
   setToken,
   type RegisterPayload,
   type User,
@@ -29,11 +30,12 @@ const AuthContext = createContext<AuthState | null>(null);
 // The extension popup's "Open dashboard" button hands its session over in
 // the URL fragment (e.g. /#ext_token=…). Fragments are never sent to the
 // server, and we strip it from the URL immediately so it doesn't linger in
-// history — but adopting it REPLACES whatever account the website was last
-// signed in as, so an employee always lands on their own dashboard.
+// history. The token is adopted as a TAB-scoped session (sessionStorage), so
+// this tab always shows the popup's user without hijacking an admin's login
+// in other tabs of the same browser.
 const handoffMatch = /(?:^|[#&])ext_token=([^&]+)/.exec(window.location.hash);
 if (handoffMatch) {
-  setToken(decodeURIComponent(handoffMatch[1]));
+  setTabToken(decodeURIComponent(handoffMatch[1]));
   window.history.replaceState(null, "", window.location.pathname + window.location.search);
 }
 
