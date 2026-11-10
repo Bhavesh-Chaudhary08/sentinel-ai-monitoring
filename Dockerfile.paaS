@@ -44,6 +44,7 @@ ENV CLASSIFY_SYNC=true \
     FRONTEND_DIR=/srv/frontend
 
 EXPOSE 8000
-# Migrate, seed demo accounts (idempotent — no-op once users exist), then serve.
+# Migrate, seed demo accounts (idempotent — no-op once users exist), fill any
+# missing demo activity (same script, gaps only), then serve.
 # ${PORT} is what PaaS platforms inject (Render: 10000).
-CMD ["sh", "-c", "alembic upgrade head && python -m app.db.seed && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "alembic upgrade head && python -m app.db.seed && (python -m app.db.seed_activity || echo 'seed_activity skipped') && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
