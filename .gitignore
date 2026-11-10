@@ -31,3 +31,6 @@ Thumbs.db
 
 # Freebuff workspace metadata
 .freebuff/
+
+# Local dev logs
+*.log

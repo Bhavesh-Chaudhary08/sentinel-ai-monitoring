@@ -139,6 +139,154 @@ export interface ShadowDomain {
   is_known_platform: boolean;
 }
 
+export interface DaySummary {
+  date: string;
+  browser_active_seconds: number; // focused tab + OS input recent
+  browser_idle_seconds: number;   // focused tab + no input
+  other_seconds: number;          // another app focused + input recent
+  away_seconds: number;           // no input at all
+  audible_seconds: number;        // media playing in the focused tab
+}
+
+export interface TeamDayRow extends DaySummary {
+  user_id: string;
+  user_email: string;
+  user_name: string;
+}
+
+export interface TopDomainRow {
+  domain: string;
+  seconds: number;
+}
+
+/** One comparison window of browser time, summed over the scope. */
+export interface PeriodTotals {
+  browser_active_seconds: number;
+  browser_idle_seconds: number;
+  other_seconds: number;
+  away_seconds: number;
+  audible_seconds: number;
+  segments: number;
+}
+
+/** Percent change current vs previous; null = no baseline (shown as "new"). */
+export interface TrendDeltas {
+  browser_active_seconds: number | null;
+  browser_idle_seconds: number | null;
+  other_seconds: number | null;
+  away_seconds: number | null;
+}
+
+/** Depth-of-work metrics — browser behaviour only, never a verdict. */
+export interface FocusMetrics {
+  focus_blocks: number;
+  context_switches: number;
+  switches_per_day: number;
+  longest_focus_seconds: number;
+  avg_focus_block_seconds: number;
+}
+
+export interface UserTrendRow {
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  current: PeriodTotals;
+  previous: PeriodTotals;
+  delta_pct: number | null;
+}
+
+export interface TrendsOut {
+  window_days: number;
+  scope: "team" | "user";
+  user_id: string | null;
+  current: PeriodTotals;
+  previous: PeriodTotals;
+  deltas: TrendDeltas;
+  focus: FocusMetrics;
+  daily: DaySummary[]; // current window only, ascending
+  users: UserTrendRow[];
+}
+
+/** The three weighted parts of a day's focus score, each 0–100. */
+export interface FocusComponents {
+  share_pct: number;      // focused tab vs all keyboard-tracked time
+  continuity_pct: number; // avg focus block vs the 25-minute target
+  calm_pct: number;       // context switches vs the 12/day baseline
+}
+
+/** One day's honest focus number — browser focus, never work quality. */
+export interface FocusDayRow {
+  date: string;
+  focus_score: number | null; // 0–100, null = no focused-tab time (shown as "—")
+  components: FocusComponents | null;
+  focus_seconds: number;
+  browser_active_seconds: number;
+  browser_idle_seconds: number;
+  other_seconds: number;
+  away_seconds: number; // reported, but counts against no component
+  focus_blocks: number;
+  context_switches: number;
+  longest_focus_seconds: number;
+}
+
+export interface FocusOut {
+  window_days: number;
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  average_score: number | null; // mean over days WITH focused-tab time
+  days: FocusDayRow[]; // ascending by date
+}
+
+/** The week's focus rollup for one person — the daily score, rolled up. */
+export interface DigestFocus {
+  average_score: number | null; // mean over days WITH focused-tab time
+  days_scored: number;
+  best_day: string | null;
+  best_day_score: number | null;
+  focus_seconds: number;
+  focus_blocks: number;
+  context_switches: number;
+  longest_focus_seconds: number;
+}
+
+/** The same person's week of AI interactions — counts + tool mix, never text. */
+export interface DigestAiUsage {
+  interactions: number;
+  flagged: number;
+  blocked: number;
+  alerts: number;
+  by_tool: { key: string; label: string | null; count: number }[];
+}
+
+/** One person's week on a page (ISO week, per-person by design). */
+export interface DigestOut {
+  week: string; // e.g. "2026-W43"
+  week_start: string; // Monday
+  week_end: string; // Sunday
+  user_id: string;
+  user_email: string;
+  user_name: string;
+  totals: PeriodTotals;
+  tracked_days: number;
+  focus: DigestFocus;
+  top_domains: TopDomainRow[];
+  ai_usage: DigestAiUsage;
+  days: FocusDayRow[]; // the week's days, ascending
+}
+
+export interface TimeSegment {
+  id: string;
+  kind: "tab" | "away";
+  domain: string | null;
+  page_path: string | null;
+  active_seconds: number;
+  idle_seconds: number;
+  audible_seconds: number;
+  started_at: string;
+  ended_at: string;
+}
+
 export interface AuditEntry {
   id: string;
   actor_id: string;
@@ -321,9 +469,38 @@ export const api = {
 
   audit: (page = 1, action?: string) =>
     request<Page<AuditEntry>>(`/audit${qs({ page, page_size: 50, action })}`),
+
+  activityMe: (days: number) =>
+    request<{ window_days: number; user_id: string; user_email: string; user_name: string; days: DaySummary[] }>(
+      `/activity/me${qs({ days })}`,
+    ),
+
+  activityTeamDaily: (days: number) => request<TeamDayRow[]>(`/activity/team-daily${qs({ days })}`),
+
+  activityDaily: (days: number, userId?: string) =>
+    request<DaySummary[]>(`/activity/daily${qs({ days, user_id: userId })}`),
+
+  activityTopDomains: (days: number, userId?: string) =>
+    request<TopDomainRow[]>(`/activity/top-domains${qs({ days, user_id: userId })}`),
+
+  activitySegments: (days: number, userId?: string, limit = 100) =>
+    request<TimeSegment[]>(`/activity/segments${qs({ days, user_id: userId, limit })}`),
+
+  activityTrends: (days: number, userId?: string) =>
+    request<TrendsOut>(`/activity/trends${qs({ days, user_id: userId })}`),
+
+  activityFocus: (days: number, userId?: string) =>
+    request<FocusOut>(`/activity/focus${qs({ days, user_id: userId })}`),
+
+  activityDigest: (week?: string, userId?: string) =>
+    request<DigestOut>(`/activity/digest${qs({ week, user_id: userId })}`),
 };
 
 export const exportPath = (
   format: "csv" | "pdf",
   params: Record<string, string | number | boolean | undefined | null>,
 ): string => `/export/interactions${qs({ ...params, format })}`;
+
+/** The weekly digest's CSV export (audited server-side like every export). */
+export const digestExportPath = (week?: string, userId?: string): string =>
+  `/export/digest${qs({ week, user_id: userId, format: "csv" })}`;

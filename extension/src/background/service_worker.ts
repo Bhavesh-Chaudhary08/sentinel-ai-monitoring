@@ -10,12 +10,19 @@
 
 import { api, ApiError, getApiBase, getStoredUser, getToken, probeApiBase, setApiBase, setSession, clearSession } from "../api/client";
 import { FALLBACK_KNOWN_DOMAINS, matchesDomain, normalizeHost } from "../rules/known-domains";
+import {
+  ACTIVITY_FLUSH_ALARM,
+  ACTIVITY_TICK_ALARM,
+  activityRefresh,
+  activityTick,
+  flushTimeQueue,
+} from "./activity";
+import { getDeviceId } from "./device";
 import type { AiTool, CaptureEvent, CaptureResponse, ShadowVisitEvent, StatusResponse, UserOut } from "../shared/types";
 
 const QUEUE_KEY = "queue";
 const DOMAIN_CACHE_KEY = "domain_cache";
 const EXTRA_DOMAINS_KEY = "extra_domains";
-const DEVICE_ID_KEY = "device_id";
 const DYN_PREFIX = "aidlp-dyn-";
 const QUEUE_CAP = 500;
 const BATCH_SIZE = 50;
@@ -118,15 +125,6 @@ async function flushQueue(): Promise<void> {
       scheduleFlush(); // network hiccup → retry with a short backoff
     }
   });
-}
-
-async function getDeviceId(): Promise<string> {
-  const stored = await chrome.storage.local.get(DEVICE_ID_KEY);
-  const existing = stored[DEVICE_ID_KEY] as string | undefined;
-  if (existing) return existing;
-  const id = `ext-${crypto.randomUUID()}`;
-  await chrome.storage.local.set({ [DEVICE_ID_KEY]: id });
-  return id;
 }
 
 /* --------------------------- shadow-AI probe ------------------------------ */
@@ -295,6 +293,7 @@ async function handleMessage(msg: Record<string, unknown>): Promise<unknown> {
       await getKnownDomains(true);
       await syncDynamicScripts();
       void flushQueue();
+      void activityRefresh(); // consent is live again → resume time tracking
       return { ok: true, user: resp.user };
     }
     case "consent": {
@@ -304,6 +303,7 @@ async function handleMessage(msg: Record<string, unknown>): Promise<unknown> {
       if (token) await setSession(token, user);
       await syncDynamicScripts();
       void flushQueue();
+      void activityRefresh();
       return { ok: true, user };
     }
     case "logout": {
@@ -311,6 +311,10 @@ async function handleMessage(msg: Record<string, unknown>): Promise<unknown> {
       const all = await chrome.scripting.getRegisteredContentScripts();
       const dyn = all.filter((s) => s.id.startsWith(DYN_PREFIX)).map((s) => s.id);
       if (dyn.length) await chrome.scripting.unregisterContentScripts({ ids: dyn });
+      // consent is gone → the open segment closes (it is already accrued to
+      // the previous user); the flush below still uploads queued segments.
+      void activityRefresh();
+      void flushTimeQueue();
       return { ok: true };
     }
     case "preflight": {
@@ -363,22 +367,35 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
 /* ------------------------------ lifecycle --------------------------------- */
 
+function ensureAlarms(): void {
+  void chrome.alarms.create("flush-queue", { periodInMinutes: 0.5 });
+  // Sessionizer tick (30s = Chrome's minimum reliable MV3 period) and the
+  // time-segment upload cadence.
+  void chrome.alarms.create(ACTIVITY_TICK_ALARM, { periodInMinutes: 0.5 });
+  void chrome.alarms.create(ACTIVITY_FLUSH_ALARM, { periodInMinutes: 1 });
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   // Probe picks whichever backend actually answers (compose 8001 / direct
   // 8000), rewriting a stale stored base if needed — this subsumes the old
   // hardcoded "8000 → 8001" migration, which raced the probe on every install.
   // Then refreshes the domain list from the reachable backend.
   void probeApiBase().then(() => getKnownDomains(true)).then(syncDynamicScripts);
-  void chrome.alarms.create("flush-queue", { periodInMinutes: 0.5 });
 });
 
 chrome.runtime.onStartup.addListener(() => {
   void probeApiBase().then(syncDynamicScripts);
-  void chrome.alarms.create("flush-queue", { periodInMinutes: 0.5 });
 });
+
+// Alarms and the activity tracker are ensured at TOP LEVEL: a restarted MV3
+// service worker re-runs this file but never re-fires onInstalled/onStartup.
+// chrome.alarms.create with an existing name is a no-op-equivalent replace.
+ensureAlarms();
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "flush-queue") void flushQueue();
+  if (alarm.name === ACTIVITY_TICK_ALARM) void activityTick();
+  if (alarm.name === ACTIVITY_FLUSH_ALARM) void flushTimeQueue();
 });
 
 chrome.webNavigation.onCompleted.addListener((details) => {

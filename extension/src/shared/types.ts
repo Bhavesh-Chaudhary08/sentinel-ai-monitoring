@@ -24,6 +24,26 @@ export interface CaptureEvent {
   was_blocked?: boolean;
 }
 
+/** Browser time segment — see backend/app/models/activity.py for semantics. */
+export type TimeSegmentKind = "tab" | "away";
+
+export interface TimeSegmentEvent {
+  client_event_id: string;
+  kind: TimeSegmentKind;
+  domain?: string | null; // kind=tab only; origin+path — never query strings
+  page_path?: string | null;
+  active_seconds: number; // OS input recent within the segment
+  idle_seconds: number; // no input within the segment
+  audible_seconds: number; // tab was playing audio (overlaps active)
+  started_at: string; // ISO8601
+  ended_at: string; // ISO8601
+}
+
+export interface TimeSegmentsResponse {
+  accepted: number;
+  rejected: { client_event_id: string; reason: string }[];
+}
+
 export interface ShadowVisitEvent {
   client_event_id: string;
   occurred_at: string;

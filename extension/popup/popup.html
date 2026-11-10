@@ -77,6 +77,23 @@
         <button id="dashboard-btn" class="primary">Open dashboard</button>
         <button id="logout-btn" class="ghost">Sign out</button>
       </div>
+
+      <!-- Local ground truth for the browser-time sessionizer: the bounded
+           state-transition log the background worker keeps in storage. -->
+      <details id="diag" class="diag">
+        <summary>
+          <span>Tracking diagnostics</span>
+          <span class="muted" id="diag-head">—</span>
+        </summary>
+        <p class="diag-open" id="diag-live">Reading open segment…</p>
+        <ol id="diag-log" class="diag-log"></ol>
+        <p class="muted hidden" id="diag-empty">No state transitions recorded yet.</p>
+        <div class="diag-actions">
+          <button id="diag-copy" type="button" class="ghost">Copy log</button>
+          <button id="diag-clear" type="button" class="ghost">Clear</button>
+        </div>
+      </details>
+
       <p id="active-error" class="error hidden"></p>
     </section>
 

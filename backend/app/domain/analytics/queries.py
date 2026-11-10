@@ -94,8 +94,11 @@ def usage_summary(session: Session, days: int = 30, user_id: UUID | None = None)
     by_category = [KeyCount(key=key.value, label=key.value, count=count) for key, count in cat_rows]
 
     # --- top users (joined with email for display) ---
+    # The JOIN must be explicit: selecting User.email without it would
+    # cross-join every interaction with every user, duplicating rows.
     top_rows = session.exec(
         select(CapturedInteraction.user_id, User.email, func.count())
+        .join(User, CapturedInteraction.user_id == User.id)
         .where(*scope)
         .group_by(CapturedInteraction.user_id, User.email)
         .order_by(func.count().desc())

@@ -8,8 +8,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session
 
 from app.core.deps import get_db, require_consent
+from app.domain.activity.ingest import ingest_time_segments
 from app.domain.capture.ingest import ingest_events, ingest_shadow_visits
 from app.models.user import User
+from app.schemas.activity import TimeSegmentsIn, TimeSegmentsOut
 from app.schemas.capture import CaptureIn, CaptureOut, ShadowVisitIn, ShadowVisitOut
 
 router = APIRouter(prefix="/capture", tags=["capture"])
@@ -57,3 +59,19 @@ def capture_shadow_visits(
         capture_enabled_for=outcome.capture_enabled_for,
         risk=outcome.risk,
     )
+
+
+@router.post("/time-sessions", response_model=TimeSegmentsOut)
+def capture_time_sessions(
+    payload: TimeSegmentsIn,
+    user: User = Depends(require_consent),
+    session: Session = Depends(get_db),
+) -> TimeSegmentsOut:
+    """Closed browser-time segments from the extension's sessionizer.
+
+    Durations and domain+path only — no keystrokes, no query strings. Same
+    consent + device gates as every other capture path.
+    """
+    _assert_device(user, payload.device_id)
+    outcome = ingest_time_segments(session, user, payload.device_id, payload.events)
+    return TimeSegmentsOut(accepted=len(outcome.created), rejected=outcome.rejected)

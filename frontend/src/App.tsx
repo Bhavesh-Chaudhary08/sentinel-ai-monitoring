@@ -5,6 +5,9 @@ import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MyActivity from "./pages/employee/MyActivity";
+import MyTime from "./pages/employee/MyTime";
+import MyDigest from "./pages/employee/MyDigest";
+import Activity from "./pages/admin/Activity";
 import Interactions from "./pages/admin/Interactions";
 import Alerts from "./pages/admin/Alerts";
 import Analytics from "./pages/admin/Analytics";
@@ -56,6 +59,12 @@ export default function App() {
           >
             <Route path="/" element={<Home />} />
             <Route path="/me" element={<MyActivity />} />
+            <Route path="/time" element={<MyTime />} />
+            <Route path="/digest" element={<MyDigest />} />
+            <Route
+              path="/activity"
+              element={<RequireAdmin><Activity /></RequireAdmin>}
+            />
             <Route
               path="/analytics"
               element={<RequireAdmin><Analytics /></RequireAdmin>}

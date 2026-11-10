@@ -9,7 +9,8 @@
     "scripting",
     "webNavigation",
     "alarms",
-    "tabs"
+    "tabs",
+    "idle"
   ],
   "host_permissions": [
     "http://*/*",

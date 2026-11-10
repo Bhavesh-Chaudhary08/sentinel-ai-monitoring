@@ -8,6 +8,7 @@ import logging
 from datetime import timedelta
 from uuid import UUID
 
+from sqlalchemy import delete as sa_delete
 from sqlalchemy import update as sa_update
 from sqlmodel import Session
 
@@ -19,6 +20,7 @@ from app.domain.alerts.dispatcher import maybe_create_alert
 from app.domain.alerts.realtime import alert_payload, publish_alert
 from app.domain.classification.pipeline import classify_prompt
 from app.domain.policy.engine import evaluate_policy
+from app.models.activity import TimeSegment
 from app.models.alert import Alert
 from app.models.interaction import CapturedInteraction, ClassificationFinding
 from app.models.user import User
@@ -152,7 +154,11 @@ def send_alert(alert_id: str) -> None:
 
 @celery_app.task(name="retention.purge_expired_content")
 def purge_expired_content() -> int:
-    """Null out raw text whose retention window expired; metadata survives."""
+    """Null out raw text whose retention window expired; metadata survives.
+
+    Time segments are metadata-only too, but there is nothing left to learn
+    from a stale duration row — those are hard-deleted outright.
+    """
     with Session(engine) as session:
         result = session.execute(
             sa_update(CapturedInteraction)
@@ -163,10 +169,20 @@ def purge_expired_content() -> int:
             )
             .values(prompt_text=None, response_text=None, content_stored=False)
         )
+        expired_segments = session.execute(
+            sa_delete(TimeSegment).where(
+                TimeSegment.purge_after.is_not(None),
+                TimeSegment.purge_after < utcnow(),
+            )
+        )
         session.commit()
-        count = result.rowcount or 0
+        count = (result.rowcount or 0) + (expired_segments.rowcount or 0)
         if count:
-            logger.info("retention sweep purged raw content from %s rows", count)
+            logger.info(
+                "retention sweep purged raw content from %s rows and deleted %s time segments",
+                result.rowcount or 0,
+                expired_segments.rowcount or 0,
+            )
         return count
 
 

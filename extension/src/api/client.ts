@@ -9,6 +9,8 @@ import type {
   PolicyCheckResponse,
   ShadowVisitEvent,
   ShadowVisitResponse,
+  TimeSegmentEvent,
+  TimeSegmentsResponse,
   TokenResponse,
   UsageResponse,
   UserOut,
@@ -158,6 +160,12 @@ export const api = {
 
   shadowVisits: (deviceId: string, events: ShadowVisitEvent[]) =>
     request<ShadowVisitResponse>("/capture/shadow-visits", {
+      method: "POST",
+      body: JSON.stringify({ device_id: deviceId, events }),
+    }),
+
+  timeSessions: (deviceId: string, events: TimeSegmentEvent[]) =>
+    request<TimeSegmentsResponse>("/capture/time-sessions", {
       method: "POST",
       body: JSON.stringify({ device_id: deviceId, events }),
     }),

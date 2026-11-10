@@ -64,3 +64,15 @@ class ShadowRisk(str, Enum):
     medium = "medium"
     high = "high"
     unknown = "unknown"
+
+
+class TimeSegmentKind(str, Enum):
+    """What a browser-time segment attributes its seconds to.
+
+    tab:  the browser window was focused on this domain/path.
+    away: the browser was unfocused (another app / locked) OR the machine was
+          idle — active/idle seconds inside the segment say which.
+    """
+
+    tab = "tab"
+    away = "away"

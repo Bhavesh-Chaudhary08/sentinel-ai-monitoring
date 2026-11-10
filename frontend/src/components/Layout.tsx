@@ -5,6 +5,7 @@ import { SeverityBadge } from "./RiskBadge";
 
 const ADMIN_LINKS = [
   { to: "/analytics", label: "Analytics" },
+  { to: "/activity", label: "Browser time" },
   { to: "/interactions", label: "Interactions" },
   { to: "/alerts", label: "Alerts" },
   { to: "/shadow", label: "Shadow AI" },
@@ -46,6 +47,8 @@ export default function Layout() {
 
         <nav>
           {!isAdmin && <NavLink to="/me">My activity</NavLink>}
+          {!isAdmin && <NavLink to="/time">My time</NavLink>}
+          {!isAdmin && <NavLink to="/digest">Weekly digest</NavLink>}
           {isAdmin && ADMIN_LINKS.map((link) => (
             <NavLink key={link.to} to={link.to}>
               {link.label}

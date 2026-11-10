@@ -4,6 +4,7 @@ Importing every model here means `SQLModel.metadata` is fully populated with a
 single `import app.models` (used by alembic/env.py and init_db).
 """
 
+from app.models.activity import TimeSegment
 from app.models.alert import Alert
 from app.models.audit import AuditLog
 from app.models.interaction import CapturedInteraction, ClassificationFinding
@@ -17,4 +18,5 @@ __all__ = [
     "PolicyRule",
     "Alert",
     "AuditLog",
+    "TimeSegment",
 ]

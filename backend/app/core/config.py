@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     store_raw_when_flagged: bool = True
     retention_days_default: int = 30
     retention_days_flagged: int = 180
+    # Browser time segments are duration metadata only (no content) but are
+    # still personal data — hard-deleted after this window by the sweep.
+    retention_days_time: int = 90
     retention_days_full: int = 30
 
     # --- classification ---
