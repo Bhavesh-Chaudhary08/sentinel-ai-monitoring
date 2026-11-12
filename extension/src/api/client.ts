@@ -36,9 +36,23 @@ export class ApiError extends Error {
   }
 }
 
+/** Loopback bases belong to a dev machine, never to a shared/hosted build. */
+function isLoopbackBase(base: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\/|:|\/|$)/i.test(base);
+}
+
 export async function getApiBase(): Promise<string> {
-  const stored = await chrome.storage.local.get(API_BASE_KEY);
-  return (stored[API_BASE_KEY] as string) || DEFAULT_API_BASE;
+  const stored = (await chrome.storage.local.get(API_BASE_KEY))[API_BASE_KEY] as
+    | string
+    | undefined;
+  // A hosted build must never keep feeding a user's activity to a dev machine:
+  // a localhost override left behind by an earlier dev build is dropped in
+  // favour of the baked public URL. Explicit non-loopback overrides still win.
+  if (BAKED_API_URL && stored && isLoopbackBase(stored)) {
+    await chrome.storage.local.remove(API_BASE_KEY);
+    return DEFAULT_API_BASE;
+  }
+  return stored || DEFAULT_API_BASE;
 }
 
 export async function setApiBase(base: string): Promise<void> {
