@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Sentinel — AI Usage Monitor (enrolled devices)",
+  "name": "Sentinel — AI Usage Monitor",
   "version": "0.1.0",
-  "description": "Transparent, consented capture of generative-AI prompts/responses with content-aware DLP on org-enrolled devices. Monitoring state is always visible.",
+  "description": "Consented capture of AI prompts with content-aware DLP on enrolled devices. The monitoring state is always visible to the user.",
   "minimum_chrome_version": "114",
   "icons": {
     "16": "icons/icon16.png",
