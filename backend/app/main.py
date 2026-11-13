@@ -92,6 +92,18 @@ def create_app() -> FastAPI:
     def health() -> JSONResponse:
         return JSONResponse({"status": "ok", "version": settings.app_version})
 
+    @app.get("/privacy", include_in_schema=False)
+    def privacy() -> FileResponse:
+        """Public privacy policy — required by extension stores that list us.
+
+        Served before the SPA fallback so it works with or without a built
+        dashboard (FRONTEND_DIR unset in tests).
+        """
+        return FileResponse(
+            Path(__file__).parent / "static" / "privacy.html",
+            media_type="text/html",
+        )
+
     if settings.frontend_dir:
         _mount_dashboard(app, Path(settings.frontend_dir))
 

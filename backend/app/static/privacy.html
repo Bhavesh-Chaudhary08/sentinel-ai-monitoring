@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sentinel — Privacy Policy</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0; padding: 48px 20px; background: #0b1120; color: #dbe4f0;
+        font: 16px/1.65 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+      main { max-width: 760px; margin: 0 auto; }
+      h1 { font-size: 30px; margin: 0 0 6px; color: #fff; }
+      h2 { font-size: 19px; margin: 32px 0 8px; color: #fff; }
+      .sub { color: #8fa6c4; margin: 0 0 28px; font-size: 14px; }
+      code { background: #16213a; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+      ul { padding-left: 20px; }
+      li { margin: 4px 0; }
+      a { color: #38bdf8; }
+      table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 15px; }
+      th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #22304d; vertical-align: top; }
+      th { color: #fff; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+      footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #22304d; color: #8fa6c4; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Sentinel Privacy Policy</h1>
+      <p class="sub">Last updated: 13 November 2026</p>
+
+      <p>
+        Sentinel is a browser extension plus a dashboard used by <strong>organizations</strong>
+        to monitor how generative-AI tools are used on devices they enroll. It is not
+        installed by individuals for personal use: your organization installs it and
+        tells you that it is installed.
+      </p>
+
+      <h2>What the extension collects</h2>
+      <ul>
+        <li>
+          <strong>Prompt text you submit to AI tools</strong> on the sites your organization
+          monitors (for example ChatGPT, Gemini, Claude and Copilot). A copy is stored, along
+          with a hash and a redacted preview, so the dashboard can show what was sent.
+        </li>
+        <li>
+          <strong>AI tool usage metadata</strong> — which tool, which page, and when.
+        </li>
+        <li>
+          <strong>Visited domains</strong> that the extension recognizes as AI platforms, plus
+          the page title of an unrecognized site when it looks like an AI chat interface. If
+          extended detection is enabled in the extension's settings, other <code>https</code>
+          sites are checked for an AI chat interface; a page is only reported when one is found.
+        </li>
+        <li>
+          <strong>Browser activity timing</strong> — active, idle, audible and away time per
+          site, plus the page path, so the dashboard can show where working time went.
+        </li>
+        <li>
+          <strong>Account email and a device identifier</strong>, so captured activity can be
+          attributed to the right person and device.
+        </li>
+      </ul>
+
+      <h2>What it does not collect</h2>
+      <p>
+        The extension does not read or transmit passwords, form fields outside the monitored AI
+        prompt boxes, keystrokes on other sites, your files, or activity in other browsers or
+        applications. Capture does not run until you accept the monitoring notice on your account,
+        and it stops when you sign out or disable the extension.
+      </p>
+
+      <h2>Where the data goes</h2>
+      <p>
+        Captured data is sent over HTTPS to the Sentinel server your organization configures —
+        for this deployment, <code>https://sentinel-7rlb.onrender.com</code> — and stored in that
+        organization's database. It is not sold, and it is not shared with third parties beyond
+        the infrastructure used to run the service. Sensitive-value detection (credentials, PII,
+        financial data) can run on your device before anything is uploaded, and prompts that are
+        blocked never leave the browser.
+      </p>
+
+      <h2>How long it is kept</h2>
+      <table>
+        <tr><th>Data</th><th>Retention</th></tr>
+        <tr><td>Browser time segments</td><td>90 days</td></tr>
+        <tr><td>Prompts and interactions (unflagged)</td><td>30 days</td></tr>
+        <tr><td>Prompts that triggered a DLP alert</td><td>180 days</td></tr>
+      </table>
+      <p>Your organization's administrator can change these periods; old rows are purged automatically.</p>
+
+      <h2>Who can see it</h2>
+      <p>
+        You can always see your own data in <em>My time</em> and <em>Weekly digest</em>. Your
+        organization's administrators can see per-person activity summaries and the prompts
+        flagged by policy. Access is role-based and requires signing in.
+      </p>
+
+      <h2>Your visibility and control</h2>
+      <ul>
+        <li>The extension's popup always shows whether monitoring is on.</li>
+        <li>Monitoring requires your recorded consent; withdrawing it stops capture.</li>
+        <li>Signing out of the extension stops capture immediately.</li>
+      </ul>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about this deployment, or requests to access or delete data, go to
+        <a href="mailto:bhavesh.chaudhary1608@gmail.com">bhavesh.chaudhary1608@gmail.com</a>,
+        the operator of this Sentinel instance.
+      </p>
+
+      <footer>
+        This policy describes the Sentinel extension and the dashboard it reports to. If your
+        organization runs its own Sentinel server, it is responsible for its own policy and
+        retention settings.
+      </footer>
+    </main>
+  </body>
+</html>

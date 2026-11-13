@@ -39,6 +39,20 @@
         <p id="save-msg" class="hint ok"></p>
       </section>
 
+      <section>
+        <h2>Detection coverage</h2>
+        <p class="hint">
+          Capture always runs on the known AI platforms above. Extended
+          detection also checks other <code>https</code> sites you visit for an
+          AI chat interface — a page is only reported when one is actually
+          found, and nothing is uploaded otherwise.
+        </p>
+        <div class="row">
+          <button id="toggle-broad">Checking…</button>
+        </div>
+        <p id="broad-status" class="hint"></p>
+      </section>
+
       <footer>
         <span>Transparency: capture only runs while signed in with consent recorded; full text is stored only for flagged prompts.</span>
       </footer>

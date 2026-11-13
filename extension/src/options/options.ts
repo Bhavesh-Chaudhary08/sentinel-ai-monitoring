@@ -22,8 +22,24 @@ async function loadDomains(): Promise<void> {
   }
 }
 
+// Broad https access is optional: the manifest grants host permissions for the
+// known AI platforms only, so coverage of brand-new AI sites is an explicit
+// opt-in the user grants here (store review expects exactly this split).
+const BROAD_ORIGINS = ["https://*/*"];
+
+async function syncBroadState(): Promise<void> {
+  const btn = $<HTMLButtonElement>("#toggle-broad");
+  const status = $("#broad-status");
+  const granted = await chrome.permissions.contains({ origins: BROAD_ORIGINS });
+  btn.textContent = granted ? "Disable extended detection" : "Enable extended detection";
+  status.textContent = granted
+    ? "On — other https sites are checked for AI chat interfaces; a page is only reported when one is detected."
+    : "Off — only the known AI platforms listed above are scanned.";
+}
+
 async function init(): Promise<void> {
   $<HTMLInputElement>("#api-base").value = await getApiBase();
+  await syncBroadState();
 
   const stored = await chrome.storage.local.get("extra_domains");
   const extra = (stored.extra_domains as string[] | undefined) ?? [];
@@ -49,6 +65,18 @@ $("#save-domains").addEventListener("click", async () => {
   await chrome.storage.local.set({ extra_domains: domains });
   await chrome.runtime.sendMessage({ type: "resync" });
   flash(`Saved ${domains.length} local domain(s); content scripts re-synced.`);
+});
+
+$("#toggle-broad").addEventListener("click", async () => {
+  const granted = await chrome.permissions.contains({ origins: BROAD_ORIGINS });
+  if (granted) {
+    await chrome.permissions.remove({ origins: BROAD_ORIGINS });
+  } else {
+    // Must run inside the click gesture for Chrome to show the prompt.
+    await chrome.permissions.request({ origins: BROAD_ORIGINS });
+  }
+  await syncBroadState();
+  await chrome.runtime.sendMessage({ type: "resync" });
 });
 
 function flash(message: string): void {

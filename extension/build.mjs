@@ -46,9 +46,15 @@ const staticAssets = [
   ["popup/popup.css", "dist/popup.css"],
   ["options/options.html", "dist/options.html"],
   ["options/options.css", "dist/options.css"],
+  // Store icons — required by the Edge Add-ons listing and the toolbar.
+  ["icons/icon16.png", "dist/icons/icon16.png"],
+  ["icons/icon32.png", "dist/icons/icon32.png"],
+  ["icons/icon48.png", "dist/icons/icon48.png"],
+  ["icons/icon128.png", "dist/icons/icon128.png"],
 ];
 
 await mkdir("dist", { recursive: true });
+await mkdir("dist/icons", { recursive: true });
 
 for (const [from, to] of staticAssets) {
   await copyFile(from, to);

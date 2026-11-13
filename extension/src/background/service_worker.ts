@@ -220,7 +220,10 @@ async function syncDynamicScripts(): Promise<void> {
   for (const domain of await getKnownDomains()) {
     if (STATIC_DOMAINS.has(domain)) continue;
     const id = DYN_PREFIX + domain.replace(/[^a-z0-9.-]/gi, "_");
-    want.set(id, [`*://${domain}/*`, `*://*.${domain}/*`]);
+    // https only: the manifest grants host access for https origins, and every
+    // supported AI platform is https. Registering http variants would be
+    // rejected by chrome.scripting without that permission.
+    want.set(id, [`https://${domain}/*`, `https://*.${domain}/*`]);
   }
 
   const current = await owned();
@@ -238,7 +241,15 @@ async function syncDynamicScripts(): Promise<void> {
       allFrames: false,
       persistAcrossSessions: true,
     }));
-  if (toAdd.length) await chrome.scripting.registerContentScripts(toAdd);
+  // A domain the backend approved but this build holds no host permission for
+  // (e.g. added later via KNOWN_AI_DOMAINS) must not abort the whole sync.
+  for (const script of toAdd) {
+    try {
+      await chrome.scripting.registerContentScripts([script]);
+    } catch {
+      /* no host access for this origin — skip it */
+    }
+  }
 }
 
 /* ------------------------------ badge ------------------------------------- */
