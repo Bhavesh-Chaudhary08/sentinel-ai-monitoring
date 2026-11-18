@@ -8,7 +8,7 @@ import { currentWeekLabel, shiftWeekLabel } from "../lib/week";
  * admin drilldown share this card. Same framing rules as the rest of the
  * browser-time work: durations are facts, the focus score is per-person with
  * no ranking surface, an unscored day shows "—" and never a fake 0, and the
- * export carries counts/durations only (never prompt text) and is audited.
+ * export carries counts/durations only (never prompt text).
  */
 export default function WeeklyDigest({
   userId,
@@ -191,8 +191,7 @@ export default function WeeklyDigest({
               {digest.ai_usage.by_tool.length > 0 ? (
                 <>
                   AI tools this week:{" "}
-                  {digest.ai_usage.by_tool.map((t) => `${t.key} ×${t.count}`).join(" · ")}
-                  {digest.ai_usage.alerts > 0 && ` · ${digest.ai_usage.alerts} alert(s)`}.{" "}
+                  {digest.ai_usage.by_tool.map((t) => `${t.key} ×${t.count}`).join(" · ")}.{" "}
                 </>
               ) : (
                 <>No AI prompts captured this week.{" "}
@@ -201,8 +200,8 @@ export default function WeeklyDigest({
               One person's week — same numbers as everywhere else, no team
               ranking. The focus score describes browser focus only, not the
               quality of the work; away time counts against nothing; “—” means
-              nothing to score, never a zero. The CSV export is audited and
-              carries counts and durations only — never prompt text.
+              nothing to score, never a zero. The CSV export carries counts and
+              durations only — never prompt text.
             </p>
           </>
         )

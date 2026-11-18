@@ -18,7 +18,6 @@ from sqlmodel import Session, select
 from app.core.enums import TimeSegmentKind
 from app.core.time import utcnow
 from app.models.activity import TimeSegment
-from app.models.alert import Alert
 from app.models.interaction import CapturedInteraction
 from app.models.user import User
 from app.schemas.activity import (
@@ -612,11 +611,6 @@ def weekly_digest(session: Session, user_id: UUID, monday: date) -> DigestOut:
             ),
         ).where(*ai_scope)
     ).one()
-    alert_count = session.exec(
-        select(func.count())
-        .select_from(Alert)
-        .where(Alert.user_id == user_id, Alert.created_at >= start, Alert.created_at < end)
-    ).one()
     tool_rows = session.exec(
         select(CapturedInteraction.ai_tool, func.count())
         .where(*ai_scope)
@@ -651,7 +645,6 @@ def weekly_digest(session: Session, user_id: UUID, monday: date) -> DigestOut:
             interactions=int(counts[0]),
             flagged=int(counts[1]),
             blocked=int(counts[2]),
-            alerts=int(alert_count),
             by_tool=[KeyCount(key=k.value, label=k.value, count=c) for k, c in tool_rows],
         ),
         days=day_rows,

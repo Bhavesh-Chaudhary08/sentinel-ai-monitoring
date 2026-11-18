@@ -1,7 +1,7 @@
 """Data-minimization primitives: hashing, truncation, preview redaction.
 
 Contract (see CapturedInteraction docstring):
-- prompt_hash  = sha256(prompt) — ALWAYS, enables dedupe/audit without content
+- prompt_hash  = sha256(prompt) — ALWAYS, enables dedupe without content
 - redacted_preview = PII/secret-masked prefix — ALWAYS safe to display
 - raw prompt/response text — only ever persisted by the worker when flagged
 """

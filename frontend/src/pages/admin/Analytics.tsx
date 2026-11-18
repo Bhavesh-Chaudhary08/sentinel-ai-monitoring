@@ -71,7 +71,6 @@ export default function Analytics() {
         <div className="stat-card"><div className="value">{totals?.interactions ?? "—"}</div><div className="label">captured messages</div></div>
         <div className="stat-card"><div className="value">{totals?.flagged ?? "—"}</div><div className="label">flagged by DLP</div></div>
         <div className="stat-card"><div className="value">{totals?.blocked ?? "—"}</div><div className="label">blocked pre-send</div></div>
-        <div className="stat-card"><div className="value">{totals?.alerts ?? "—"}</div><div className="label">alerts raised</div></div>
         <div className="stat-card"><div className="value">{totals?.shadow_domains ?? "—"}</div><div className="label">shadow-AI domains</div></div>
         <div className="stat-card"><div className="value">{totals?.active_users ?? "—"}</div><div className="label">active users</div></div>
       </div>

@@ -1,4 +1,4 @@
-"""Initial schema: user, policy_rule, captured_interaction, classification_finding, alert, audit_log.
+"""Initial schema: user, policy_rule, captured_interaction, classification_finding.
 
 Notes:
 - Enum columns use native Postgres ENUM types, matching how SQLModel maps
@@ -18,8 +18,6 @@ import sqlalchemy as sa
 from alembic import op
 
 from app.core.enums import (
-    AlertSeverity,
-    AlertStatus,
     AiTool,
     ClassificationStatus,
     PolicyAction,
@@ -153,50 +151,9 @@ def upgrade() -> None:
         "ix_finding_interaction_score", "classification_finding", ["interaction_id", "score"]
     )
 
-    op.create_table(
-        "alert",
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("interaction_id", sa.Uuid(), nullable=False, index=True),
-        sa.Column("rule_id", sa.Uuid(), nullable=True),
-        sa.Column("user_id", sa.Uuid(), nullable=False, index=True),
-        sa.Column("severity", sa.Enum(AlertSeverity, native_enum=True), nullable=False, index=True),
-        sa.Column("status", sa.Enum(AlertStatus, native_enum=True), nullable=False, index=True),
-        sa.Column("title", sa.String(length=200), nullable=False),
-        sa.Column("summary", sa.String(length=1000), nullable=False),
-        sa.Column("context", sa.JSON(), nullable=True),
-        sa.Column("notified_at", sa.DateTime(), nullable=True),
-        sa.Column("acknowledged_by", sa.Uuid(), nullable=True),
-        sa.Column("acknowledged_at", sa.DateTime(), nullable=True),
-        sa.Column("resolved_at", sa.DateTime(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=False, index=True),
-        sa.ForeignKeyConstraint(["acknowledged_by"], ["user.id"]),
-        sa.ForeignKeyConstraint(["interaction_id"], ["captured_interaction.id"]),
-        sa.ForeignKeyConstraint(["rule_id"], ["policy_rule.id"]),
-        sa.ForeignKeyConstraint(["user_id"], ["user.id"]),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index(
-        "ix_alert_status_severity_created", "alert", ["status", "severity", "created_at"]
-    )
-
-    op.create_table(
-        "audit_log",
-        sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("actor_id", sa.Uuid(), nullable=False, index=True),
-        sa.Column("action", sa.String(length=64), nullable=False, index=True),
-        sa.Column("target_type", sa.String(length=64), nullable=True),
-        sa.Column("target_id", sa.String(length=64), nullable=True),
-        sa.Column("detail", sa.JSON(), nullable=True),
-        sa.Column("created_at", sa.DateTime(), nullable=False, index=True),
-        sa.ForeignKeyConstraint(["actor_id"], ["user.id"]),
-        sa.PrimaryKeyConstraint("id"),
-    )
-
 
 def downgrade() -> None:
     # Reverse order (FK dependencies).
-    op.drop_table("audit_log")
-    op.drop_table("alert")
     op.drop_table("classification_finding")
     op.drop_table("captured_interaction")
     op.drop_table("policy_rule")
@@ -204,8 +161,6 @@ def downgrade() -> None:
 
     # drop_table removes indexes/constraints but not Postgres enum types.
     for enum_cls in (
-        AlertSeverity,
-        AlertStatus,
         AiTool,
         ClassificationStatus,
         PolicyAction,

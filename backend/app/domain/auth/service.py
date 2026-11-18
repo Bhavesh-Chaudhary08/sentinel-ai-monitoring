@@ -29,7 +29,7 @@ def issue_token(user: User) -> str:
 def record_consent(session: Session, user: User, payload: ConsentIn) -> User:
     """Employee accepts the monitoring notice (and optionally binds a device).
 
-    Consent is versioned so the audit trail can prove *which* notice text was
+    Consent is versioned so the record can prove *which* notice text was
     accepted; re-accepting after a policy change updates the version.
     """
     user.consent_accepted = bool(payload.accepted)

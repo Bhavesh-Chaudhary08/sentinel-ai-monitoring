@@ -1,4 +1,4 @@
-"""Celery tasks: classification + policy evaluation, alert fan-out, retention.
+"""Celery tasks: classification + policy evaluation, retention.
 
 `classify_interaction` receives the raw prompt as an argument (not from the
 DB) — the row itself never contains raw text before the flagging decision.
@@ -16,12 +16,9 @@ from app.core.config import settings
 from app.core.enums import ClassificationStatus, PolicyAction
 from app.core.time import utcnow
 from app.db.session import engine
-from app.domain.alerts.dispatcher import maybe_create_alert
-from app.domain.alerts.realtime import alert_payload, publish_alert
 from app.domain.classification.pipeline import classify_prompt
 from app.domain.policy.engine import evaluate_policy
 from app.models.activity import TimeSegment
-from app.models.alert import Alert
 from app.models.interaction import CapturedInteraction, ClassificationFinding
 from app.models.user import User
 from app.workers.celery_app import celery_app
@@ -49,7 +46,7 @@ def classify_interaction(
     prompt_text: str | None,
     response_text: str | None,
 ) -> None:
-    """Full pipeline: classify → retain-if-flagged → policy → alert."""
+    """Full pipeline: classify → retain-if-flagged → policy."""
     try:
         _classify_and_evaluate(interaction_id, prompt_text, response_text)
     except Exception:
@@ -124,32 +121,7 @@ def _classify_and_evaluate(
         row.policy_rule_id = evaluation.rule.id if evaluation.rule else None
         # row.was_blocked stays as reported by the extension (what actually happened).
 
-        alert = maybe_create_alert(session, row, evaluation, user)
         session.commit()
-
-        if alert is not None:
-            _queue_alert(str(alert.id))
-
-
-def _queue_alert(alert_id: str) -> None:
-    """Queue via Redis — or run inline when CLASSIFY_SYNC=true (tests/dev),
-    so no broker is required for the deterministic test-suite."""
-    if settings.classify_sync:
-        send_alert(alert_id)
-    else:
-        send_alert.delay(alert_id)
-
-
-@celery_app.task(name="alert.send_alert")
-def send_alert(alert_id: str) -> None:
-    with Session(engine) as session:
-        alert = session.get(Alert, UUID(alert_id))
-        if alert is None:
-            return
-        publish_alert(alert_payload(alert))
-        alert.notified_at = utcnow()
-        session.commit()
-        logger.info("alert %s notified (%s)", alert.id, alert.severity.value)
 
 
 @celery_app.task(name="retention.purge_expired_content")

@@ -1,17 +1,13 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { useAlertSocket } from "../realtime/useAlertSocket";
-import { SeverityBadge } from "./RiskBadge";
 
 const ADMIN_LINKS = [
   { to: "/analytics", label: "Analytics" },
   { to: "/activity", label: "Browser time" },
   { to: "/interactions", label: "Interactions" },
-  { to: "/alerts", label: "Alerts" },
   { to: "/shadow", label: "Shadow AI" },
   { to: "/policies", label: "Policies" },
   { to: "/users", label: "Users" },
-  { to: "/audit", label: "Audit log" },
 ];
 
 /**
@@ -32,7 +28,6 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === "admin";
-  const { connected, latest, dismiss } = useAlertSocket(isAdmin);
 
   return (
     <div className="shell">
@@ -80,11 +75,6 @@ export default function Layout() {
             consented={!!user?.consent_accepted}
             enrolled={!!user?.is_enrolled}
           />
-          {isAdmin && (
-            <span className={`live-pill ${connected ? "on" : ""}`}>
-              {connected ? "● live alerts" : "○ live alerts reconnecting…"}
-            </span>
-          )}
           {!user?.consent_accepted && (
             <span className="hint">
               Enable capture from the extension popup to record activity
@@ -96,24 +86,6 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
-
-      {isAdmin && latest.length > 0 && (
-        <div className="toasts">
-          {latest.slice(0, 3).map((alert) => (
-            <div key={alert.id} className={`toast toast-${alert.severity}`}>
-              <div className="toast-head">
-                <SeverityBadge severity={alert.severity} />
-                <strong>{alert.title}</strong>
-                <button className="x" onClick={() => dismiss(alert.id)} aria-label="Dismiss">
-                  ×
-                </button>
-              </div>
-              <p>{alert.summary}</p>
-              <span className="muted">{new Date(alert.created_at).toLocaleTimeString()}</span>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

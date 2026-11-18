@@ -7,7 +7,6 @@ from sqlmodel import Session, select
 from app.core.deps import get_current_user, get_db
 from app.core.enums import UserRole
 from app.core.security import hash_password
-from app.domain.audit.service import record_audit
 from app.domain.auth.service import authenticate, issue_token, normalize_email, record_consent
 from app.models.user import User
 from app.schemas.auth import ConsentIn, RegisterIn, TokenOut, UserOut
@@ -56,8 +55,6 @@ def register(
     )
     session.add(user)
     session.flush()
-    record_audit(session, user.id, "user.register", target_type="user",
-                 target_id=user.id, detail={"email": email, "role": "employee"})
     session.commit()
     session.refresh(user)
     return TokenOut(access_token=issue_token(user), user=UserOut.model_validate(user))

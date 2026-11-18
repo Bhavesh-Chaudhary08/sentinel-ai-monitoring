@@ -25,7 +25,6 @@ class UsageTotals(BaseModel):
     interactions: int = 0
     flagged: int = 0
     blocked: int = 0
-    alerts: int = 0
     shadow_domains: int = 0
     active_users: int = 0
 

@@ -4,9 +4,6 @@ Used to hand a deployment over with a clean slate. Guarded three ways: admin
 role required, an exact confirmation phrase in the body, and `dry_run`
 defaulting to true so a mistaken call only reports what it would delete.
 
-The audit entry is written after the wipe (it would otherwise be deleted with
-the rest), so the action itself stays traceable.
-
     POST /api/v1/maintenance/reset   {"confirm": "DELETE ALL DATA", "dry_run": true}
     POST /api/v1/maintenance/reset   {"confirm": "DELETE ALL DATA", "dry_run": false}
 """
@@ -17,7 +14,6 @@ from sqlalchemy import text
 from sqlmodel import Session
 
 from app.core.deps import get_db, require_admin
-from app.domain.audit.service import record_audit
 from app.models.user import User
 
 router = APIRouter(prefix="/maintenance", tags=["maintenance"])
@@ -27,10 +23,8 @@ CONFIRM_PHRASE = "DELETE ALL DATA"
 # Child rows first — the schema's foreign keys are not ON DELETE CASCADE.
 TABLES = [
     "classification_finding",
-    "alert",
     "captured_interaction",
     "time_segment",
-    "audit_log",
 ]
 
 
@@ -77,14 +71,6 @@ def reset_data(
     for table in TABLES:
         session.execute(text(f'delete from "{table}"'))
     session.execute(text("delete from \"user\" where role <> 'admin'"))
-
-    record_audit(
-        session,
-        admin.id,
-        "data.reset",
-        target_type="system",
-        detail={"rows": counts, "users_deleted": len(doomed_users)},
-    )
     session.commit()
 
     remaining = [

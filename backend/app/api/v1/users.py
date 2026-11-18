@@ -10,7 +10,6 @@ from app.core.deps import get_db, require_admin
 from app.core.enums import UserRole
 from app.core.security import hash_password
 from app.core.time import utcnow
-from app.domain.audit.service import record_audit
 from app.domain.auth.service import normalize_email
 from app.models.user import User
 from app.schemas.auth import UserCreate, UserOut
@@ -62,8 +61,6 @@ def create_user(
         job_title=payload.job_title,
     )
     session.add(user)
-    record_audit(session, admin.id, "user.create", target_type="user",
-                 target_id=user.id, detail={"email": email, "role": payload.role.value})
     session.commit()
     session.refresh(user)
     # NOTE: the plaintext password is never returned — admin shares it out of band.
@@ -85,8 +82,6 @@ def set_user_status(
     target.is_active = is_active
     target.updated_at = utcnow()
     session.add(target)
-    record_audit(session, admin.id, "user.status", target_type="user",
-                 target_id=target.id, detail={"is_active": is_active})
     session.commit()
     session.refresh(target)
     return UserOut.model_validate(target)

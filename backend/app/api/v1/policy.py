@@ -8,7 +8,6 @@ from sqlmodel import Session, select
 
 from app.core.deps import get_current_user, get_db, require_admin
 from app.core.time import utcnow
-from app.domain.audit.service import record_audit
 from app.domain.classification.pipeline import classify_prompt
 from app.domain.policy.engine import evaluate_policy
 from app.models.policy import PolicyRule
@@ -90,8 +89,6 @@ def create_rule(
         raise HTTPException(status_code=409, detail="A rule with this name already exists")
     rule = PolicyRule(**payload.model_dump(), created_by=admin.id)
     session.add(rule)
-    record_audit(session, admin.id, "rule.create", target_type="policy_rule",
-                 target_id=rule.id, detail={"name": rule.name, "action": rule.action.value})
     session.commit()
     session.refresh(rule)
     return RuleOut.model_validate(rule)
@@ -112,8 +109,6 @@ def update_rule(
         setattr(rule, field, value)
     rule.updated_at = utcnow()
     session.add(rule)
-    record_audit(session, admin.id, "rule.update", target_type="policy_rule",
-                 target_id=rule.id, detail={"fields": sorted(changes.keys())})
     session.commit()
     session.refresh(rule)
     return RuleOut.model_validate(rule)
@@ -125,15 +120,13 @@ def deactivate_rule(
     admin: User = Depends(require_admin),
     session: Session = Depends(get_db),
 ) -> Msg:
-    """Rules are deactivated, never hard-deleted: historical interactions and
-    alerts keep their FK references (and the audit trail stays intact)."""
+    """Rules are deactivated, never hard-deleted: historical interactions
+    keep their FK references."""
     rule = session.get(PolicyRule, rule_id)
     if rule is None:
         raise HTTPException(status_code=404, detail="Rule not found")
     rule.is_active = False
     rule.updated_at = utcnow()
     session.add(rule)
-    record_audit(session, admin.id, "rule.deactivate", target_type="policy_rule",
-                 target_id=rule.id, detail={"name": rule.name})
     session.commit()
     return Msg(detail=f"Rule '{rule.name}' deactivated")

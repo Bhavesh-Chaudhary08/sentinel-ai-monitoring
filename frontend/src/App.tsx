@@ -9,12 +9,10 @@ import MyTime from "./pages/employee/MyTime";
 import MyDigest from "./pages/employee/MyDigest";
 import Activity from "./pages/admin/Activity";
 import Interactions from "./pages/admin/Interactions";
-import Alerts from "./pages/admin/Alerts";
 import Analytics from "./pages/admin/Analytics";
 import Policies from "./pages/admin/Policies";
 import ShadowAI from "./pages/admin/ShadowAI";
 import Users from "./pages/admin/Users";
-import Audit from "./pages/admin/Audit";
 
 function Spinner() {
   return (
@@ -73,11 +71,9 @@ export default function App() {
               path="/interactions"
               element={<RequireAdmin><Interactions /></RequireAdmin>}
             />
-            <Route path="/alerts" element={<RequireAdmin><Alerts /></RequireAdmin>} />
             <Route path="/shadow" element={<RequireAdmin><ShadowAI /></RequireAdmin>} />
             <Route path="/policies" element={<RequireAdmin><Policies /></RequireAdmin>} />
             <Route path="/users" element={<RequireAdmin><Users /></RequireAdmin>} />
-            <Route path="/audit" element={<RequireAdmin><Audit /></RequireAdmin>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

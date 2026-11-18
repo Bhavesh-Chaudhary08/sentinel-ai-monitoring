@@ -129,7 +129,7 @@ export default function Interactions() {
             Export PDF
           </button>
           <span className="muted tiny">
-            Exports respect your current filters and are recorded in the audit log.
+            Exports respect your current filters.
           </span>
         </div>
 

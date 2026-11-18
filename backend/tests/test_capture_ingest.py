@@ -7,7 +7,6 @@ from sqlmodel import select
 from app.core.config import settings
 
 from app.core.enums import ClassificationStatus, PolicyAction, RiskCategory, ShadowRisk
-from app.models.alert import Alert
 from app.models.interaction import CapturedInteraction, ClassificationFinding
 from tests.conftest import auth_header, capture_event, default_rules
 
@@ -94,7 +93,7 @@ def test_minimal_mode_still_drops_benign_text(client, employee, engine):
         settings.storage_mode = old
 
 
-def test_flagged_prompt_retains_raw_text_and_raises_alert(client, employee, engine):
+def test_flagged_prompt_retains_raw_text(client, employee, engine):
     from sqlmodel import Session
 
     with Session(engine) as session:
@@ -123,10 +122,6 @@ def test_flagged_prompt_retains_raw_text_and_raises_alert(client, employee, engi
         ).all()
         assert findings, "flagged rows keep per-detection findings"
         assert any(f.engine in ("regex", "presidio") for f in findings)
-        alerts = session.exec(select(Alert)).all()
-        assert len(alerts) == 1  # block action ⇒ alert
-        assert alerts[0].user_id == employee.id
-        assert "AKIA" not in alerts[0].summary  # summary uses redacted preview
 
 
 def test_duplicate_event_ids_are_idempotent(client, employee, engine):

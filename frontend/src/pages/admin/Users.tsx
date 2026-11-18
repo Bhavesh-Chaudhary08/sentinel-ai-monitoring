@@ -113,8 +113,7 @@ export default function Users() {
               <button className="primary" type="submit" disabled={busy}>Create account</button>
             </div>
             <p className="muted tiny">
-              The password is never shown again — share it with the user out of band. The
-              creation itself is recorded in the audit log.
+              The password is never shown again — share it with the user out of band.
             </p>
           </form>
         )}

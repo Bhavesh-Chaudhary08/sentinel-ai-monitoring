@@ -1,1 +1,1 @@
-"""Domain logic: auth, capture, classification, policy, alerts, analytics, audit."""
+"""Domain logic: auth, capture, classification, policy, analytics."""

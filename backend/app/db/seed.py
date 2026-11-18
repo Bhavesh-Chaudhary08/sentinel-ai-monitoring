@@ -46,7 +46,7 @@ RULES = [
          block_message="Blocked by DLP: this looks like confidential internal material. "
                        "Redact it or request approval from your data owner."),
     dict(name="Warn on personal data (PII)",
-         description="PII prompts are allowed but warned and fully audited.",
+         description="PII prompts are allowed but warned and retained for review.",
          category=RiskCategory.pii, action=PolicyAction.warn, priority=150,
          min_confidence=0.60,
          warn_message="Heads-up: this prompt appears to contain personal data. "

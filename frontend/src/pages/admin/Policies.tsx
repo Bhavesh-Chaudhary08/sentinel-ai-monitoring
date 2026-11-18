@@ -237,8 +237,8 @@ export default function Policies() {
           </table>
         </div>
         <p className="muted tiny">
-          Rules are deactivated rather than deleted so historical interactions and alerts
-          keep their references (audit integrity).
+          Rules are deactivated rather than deleted so historical interactions keep
+          their references.
         </p>
       </div>
     </>

@@ -23,8 +23,6 @@ from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.core.enums import (
-    AlertSeverity,
-    AlertStatus,
     AiTool,
     ClassificationStatus,
     PolicyAction,
@@ -34,7 +32,6 @@ from app.core.enums import (
 from app.core.time import utcnow
 from app.db.session import engine
 from app.models.activity import TimeSegment
-from app.models.alert import Alert
 from app.models.interaction import CapturedInteraction, ClassificationFinding
 from app.models.user import User
 
@@ -74,7 +71,7 @@ PAGE_PATHS = {
 }
 
 # AI prompts per week: (weekday-offset, "HH:MM", tool, kind)
-# kind: safe | pii | creds  (pii → flagged+warn+alert, creds → blocked+alert)
+# kind: safe | pii | creds  (pii → flagged+warn, creds → flagged+blocked)
 AI_WEEK_TEMPLATE: list[tuple[int, str, AiTool, str]] = [
     (0, "05:10", AiTool.chatgpt, "safe"),
     (1, "07:20", AiTool.gemini, "pii"),
@@ -253,53 +250,24 @@ def seed_ai(session: Session, user: User, monday: date, template, now: datetime)
             occurred_at=occurred,
         )
         session.add(interaction)
-        # Persist the parent first: findings/alerts FK to this row, and the
+        # Persist the parent first: findings FK to this row, and the
         # unit-of-work must never emit their inserts before it exists.
         session.flush()
         known.add(event_id)
         created += 1
 
-        if kind == "pii":
-            for label, s in (("EMAIL_ADDRESS", 0.92), ("PHONE_NUMBER", 0.85)):
-                session.add(
-                    ClassificationFinding(
-                        interaction_id=interaction.id,
-                        engine="regex",
-                        label=label,
-                        score=s,
-                    )
-                )
-            session.add(
-                Alert(
-                    interaction_id=interaction.id,
-                    user_id=user.id,
-                    severity=AlertSeverity.medium,
-                    status=AlertStatus.triggered,
-                    title="PII in prompt (warn)",
-                    summary=preview,
-                    context={"category": "pii", "score": score, "tool": tool.value},
-                    created_at=occurred,
-                )
-            )
-        elif kind == "creds":
+        detections = (
+            (("EMAIL_ADDRESS", 0.92), ("PHONE_NUMBER", 0.85))
+            if kind == "pii"
+            else (("AWS_ACCESS_KEY", 0.98),)
+        )
+        for label, s in detections:
             session.add(
                 ClassificationFinding(
                     interaction_id=interaction.id,
                     engine="regex",
-                    label="AWS_ACCESS_KEY",
-                    score=0.98,
-                )
-            )
-            session.add(
-                Alert(
-                    interaction_id=interaction.id,
-                    user_id=user.id,
-                    severity=AlertSeverity.critical,
-                    status=AlertStatus.triggered,
-                    title="Credentials blocked before send",
-                    summary=preview,
-                    context={"category": "credentials", "score": score, "tool": tool.value},
-                    created_at=occurred,
+                    label=label,
+                    score=s,
                 )
             )
     return created

@@ -1,4 +1,4 @@
-import type { AlertSeverity, PolicyAction, RiskCategory } from "../api/client";
+import type { PolicyAction, RiskCategory } from "../api/client";
 
 const TONES: Record<string, string> = {
   gray: "badge gray",
@@ -44,12 +44,6 @@ export function ActionBadge({
   if (!action) return <span className="badge gray">classifying…</span>;
   const tone = action === "block" ? "red" : action === "warn" ? "amber" : "gray";
   return <span className={`badge ${tone}`}>{action.replace("_", " ")}</span>;
-}
-
-export function SeverityBadge({ severity }: { severity: AlertSeverity }) {
-  const tone =
-    severity === "critical" ? "red" : severity === "high" ? "red" : severity === "medium" ? "amber" : "blue";
-  return <span className={`badge ${tone}`}>{severity}</span>;
 }
 
 export function ScoreBadge({ score, flagged }: { score: number; flagged: boolean }) {

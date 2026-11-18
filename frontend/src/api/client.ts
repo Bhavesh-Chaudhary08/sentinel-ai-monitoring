@@ -6,8 +6,6 @@ export type RiskCategory =
   | "none" | "pii" | "source_code" | "financial" | "confidential" | "credentials" | "other";
 export type PolicyAction = "log_only" | "warn" | "block";
 export type AiTool = "chatgpt" | "gemini" | "claude" | "copilot" | "other";
-export type AlertStatus = "triggered" | "acknowledged" | "resolved" | "false_positive";
-export type AlertSeverity = "low" | "medium" | "high" | "critical";
 
 export interface User {
   id: string;
@@ -68,24 +66,6 @@ export interface InteractionDetail extends Interaction {
   findings: Finding[];
 }
 
-export interface Alert {
-  id: string;
-  interaction_id: string;
-  rule_id: string | null;
-  user_id: string;
-  user_email: string | null;
-  severity: AlertSeverity;
-  status: AlertStatus;
-  title: string;
-  summary: string;
-  context: Record<string, unknown> | null;
-  notified_at: string | null;
-  acknowledged_by: string | null;
-  acknowledged_at: string | null;
-  resolved_at: string | null;
-  created_at: string;
-}
-
 export interface PolicyRule {
   id: string;
   name: string;
@@ -119,7 +99,6 @@ export interface UsageOut {
     interactions: number;
     flagged: number;
     blocked: number;
-    alerts: number;
     shadow_domains: number;
     active_users: number;
   };
@@ -255,7 +234,6 @@ export interface DigestAiUsage {
   interactions: number;
   flagged: number;
   blocked: number;
-  alerts: number;
   by_tool: { key: string; label: string | null; count: number }[];
 }
 
@@ -285,17 +263,6 @@ export interface TimeSegment {
   audible_seconds: number;
   started_at: string;
   ended_at: string;
-}
-
-export interface AuditEntry {
-  id: string;
-  actor_id: string;
-  actor_email: string | null;
-  action: string;
-  target_type: string | null;
-  target_id: string | null;
-  detail: Record<string, unknown> | null;
-  created_at: string;
 }
 
 const TOKEN_KEY = "aidlp_token";
@@ -430,12 +397,6 @@ export const api = {
 
   interaction: (id: string) => request<InteractionDetail>(`/interactions/${id}`),
 
-  alerts: (params: Record<string, string | number | undefined | null> = {}) =>
-    request<Page<Alert>>(`/alerts${qs(params)}`),
-
-  setAlertStatus: (id: string, status: AlertStatus) =>
-    request<Alert>(`/alerts/${id}/status`, { method: "POST", body: JSON.stringify({ status }) }),
-
   rules: (active?: boolean) => request<Page<PolicyRule>>(`/policy/rules${qs({ active })}`),
 
   createRule: (payload: Partial<PolicyRule>) =>
@@ -466,9 +427,6 @@ export const api = {
 
   setUserStatus: (id: string, isActive: boolean) =>
     request<User>(`/users/${id}/status?is_active=${isActive}`, { method: "POST" }),
-
-  audit: (page = 1, action?: string) =>
-    request<Page<AuditEntry>>(`/audit${qs({ page, page_size: 50, action })}`),
 
   activityMe: (days: number) =>
     request<{ window_days: number; user_id: string; user_email: string; user_name: string; days: DaySummary[] }>(
@@ -501,6 +459,6 @@ export const exportPath = (
   params: Record<string, string | number | boolean | undefined | null>,
 ): string => `/export/interactions${qs({ ...params, format })}`;
 
-/** The weekly digest's CSV export (audited server-side like every export). */
+/** The weekly digest's CSV export. */
 export const digestExportPath = (week?: string, userId?: string): string =>
   `/export/digest${qs({ week, user_id: userId, format: "csv" })}`;

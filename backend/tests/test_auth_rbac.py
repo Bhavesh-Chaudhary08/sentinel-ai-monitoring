@@ -50,14 +50,6 @@ def test_register_creates_employee_and_logs_in(client, engine):
     )
     assert capture.status_code == 403
 
-    from sqlmodel import Session, select
-
-    from app.models.audit import AuditLog
-
-    with Session(engine) as session:
-        actions = [a.action for a in session.exec(select(AuditLog)).all()]
-        assert "user.register" in actions
-
 
 def test_register_duplicate_email_is_409(client, employee):
     resp = client.post(
@@ -110,8 +102,8 @@ def test_garbage_token_is_401(client):
 
 
 def test_employee_blocked_from_admin_endpoints(client, employee):
-    for path in ("/api/v1/alerts", "/api/v1/policy/rules", "/api/v1/users",
-                 "/api/v1/audit", "/api/v1/analytics/shadow-ai"):
+    for path in ("/api/v1/policy/rules", "/api/v1/users",
+                 "/api/v1/analytics/shadow-ai"):
         resp = client.get(path, headers=auth_header(employee))
         assert resp.status_code == 403, f"{path} should be admin-only"
 
@@ -149,12 +141,7 @@ def test_consent_flow_enables_capture(client, no_consent_user):
     assert after.status_code == 200
 
 
-def test_rule_crud_and_audit_trail(client, admin, engine):
-    from sqlmodel import Session, select
-
-    from app.models.audit import AuditLog
-    from tests.conftest import default_rules  # noqa: F401  (kept for symmetry)
-
+def test_rule_crud(client, admin, engine):
     created = client.post(
         "/api/v1/policy/rules",
         json={"name": "unit-test-rule", "category": "financial",
@@ -176,9 +163,3 @@ def test_rule_crud_and_audit_trail(client, admin, engine):
     assert deleted.status_code == 200
     listed = client.get("/api/v1/policy/rules?active=true", headers=auth_header(admin)).json()
     assert all(r["id"] != rule_id for r in listed["items"])
-
-    with Session(engine) as session:
-        actions = [a.action for a in session.exec(select(AuditLog)).all()]
-        assert "rule.create" in actions
-        assert "rule.update" in actions
-        assert "rule.deactivate" in actions

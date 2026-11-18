@@ -74,11 +74,6 @@ class Settings(BaseSettings):
     # Score at which an interaction becomes "flagged" (raw text retained).
     flag_threshold: float = 0.50
 
-    # --- alerting ---
-    # warn-action interactions only raise an alert above this confidence.
-    alert_min_score: float = 0.75
-    critical_score: float = 0.95
-
     # --- misc ---
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 

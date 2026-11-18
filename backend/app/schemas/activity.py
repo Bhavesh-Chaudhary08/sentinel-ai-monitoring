@@ -243,7 +243,6 @@ class DigestAiUsage(BaseModel):
     interactions: int = 0
     flagged: int = 0
     blocked: int = 0
-    alerts: int = 0
     by_tool: list[KeyCount] = []
 
 

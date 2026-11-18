@@ -516,7 +516,7 @@ def _this_week_monday() -> date:
     """Monday of the CURRENT ISO week (UTC) — matches the endpoint default.
 
     Digest tests use the current week (not a past one) because the AI-usage
-    counts include alerts, whose created_at is the server clock at ingest.
+    counts use the ingest timestamp the capture request submits.
     """
     today = date.today()
     return today - timedelta(days=today.isoweekday() - 1)
@@ -576,7 +576,6 @@ def test_digest_week_rollup_and_scoping(client, employee, admin, session):
     assert body["top_domains"] == [{"domain": "a.example", "seconds": 1800}]
     assert body["ai_usage"]["interactions"] == 2
     assert body["ai_usage"]["flagged"] == 1
-    assert body["ai_usage"]["alerts"] == 1        # block action ⇒ one alert
     assert body["ai_usage"]["blocked"] == 0       # client reported the send went
     assert body["ai_usage"]["by_tool"][0]["key"] == "chatgpt"
     assert [d["date"] for d in body["days"]] == [
@@ -633,11 +632,8 @@ def test_digest_empty_week_and_invalid_labels(client, employee):
         assert resp.status_code == 422, bad
 
 
-def test_digest_export_csv_is_scoped_and_audited(client, employee, admin, session):
-    """The digest exports as CSV with the same scoping as the JSON endpoint,
-    and — like every other export — lands in the audit log."""
-    from app.models.audit import AuditLog
-
+def test_digest_export_csv_is_scoped(client, employee, admin, session):
+    """The digest exports as CSV with the same scoping as the JSON endpoint."""
     monday = _this_week_monday()
     t1 = datetime(monday.year, monday.month, monday.day, 10)
     _seed_raw(session, employee, domain="a.example", kind="tab",
@@ -652,14 +648,6 @@ def test_digest_export_csv_is_scoped_and_audited(client, employee, admin, sessio
     assert "meta,week," + week in resp.text
     assert "time,browser_active_seconds,1500" in resp.text
     assert "focus,average_score,100" in resp.text   # the perfect Monday
-
-    entry = session.exec(
-        select(AuditLog).order_by(AuditLog.created_at.desc())
-    ).first()
-    assert entry is not None
-    assert entry.action == "export.csv"
-    assert entry.target_type == "digest"
-    assert entry.actor_id == employee.id
 
     # Employees can't export someone else's week (same rule as the JSON one).
     resp = client.get(

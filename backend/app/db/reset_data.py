@@ -1,8 +1,8 @@
 """Wipe captured data and every non-admin account.
 
 For a clean slate before a demo or a hand-over: deletes all activity rows
-(time segments, captured interactions, findings, alerts, audit entries) and
-every user except the admin, so a fresh account can be registered afterwards.
+(time segments, captured interactions, findings) and every user except the
+admin, so a fresh account can be registered afterwards.
 
 Policy rules are configuration, not user data, so they are kept unless
 --drop-policies is passed.
@@ -31,10 +31,8 @@ from app.db.session import engine
 # Child rows first: FK order matters when the constraint is not ON DELETE CASCADE.
 TABLES = [
     "classification_finding",
-    "alert",
     "captured_interaction",
     "time_segment",
-    "audit_log",
 ]
 
 

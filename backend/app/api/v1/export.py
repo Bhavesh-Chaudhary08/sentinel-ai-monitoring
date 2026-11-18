@@ -1,4 +1,4 @@
-"""CSV / PDF export of the interaction report (audited)."""
+"""CSV / PDF export of the interaction report."""
 
 import csv
 import io
@@ -10,8 +10,6 @@ from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.core.deps import get_db, get_current_user
-from app.core.enums import UserRole
-from app.domain.audit.service import record_audit
 from app.domain.analytics.exporters import to_csv, to_pdf
 from app.api.v1.activity import _target_user
 from app.api.v1.interactions import InteractionFilters, apply_filters, email_map, interaction_query, to_out
@@ -33,7 +31,7 @@ def export_interactions(
     session: Session = Depends(get_db),
 ) -> Response:
     """Employees can export their own data (transparency right); admins can
-    export anything their filters select. Either way it lands in the audit log."""
+    export anything their filters select."""
     criteria = apply_filters(filters, user)
     total = session.exec(
         select(func.count()).select_from(CapturedInteraction).where(*criteria)
@@ -51,13 +49,6 @@ def export_interactions(
     ).all()
     emails = email_map(session, rows)
     items = [to_out(r, emails.get(r.user_id)) for r in rows]
-
-    record_audit(
-        session, user.id, f"export.{format}",
-        target_type="interaction",
-        detail={"rows": len(items), "role": user.role.value},
-    )
-    session.commit()
 
     stamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
     if format == "pdf":
@@ -105,7 +96,6 @@ def _digest_csv(digest: DigestOut) -> str:
         ("ai", "interactions", digest.ai_usage.interactions),
         ("ai", "flagged", digest.ai_usage.flagged),
         ("ai", "blocked", digest.ai_usage.blocked),
-        ("ai", "alerts", digest.ai_usage.alerts),
     ]
     rows.extend(
         ("ai_tool", tool.key, tool.count) for tool in digest.ai_usage.by_tool
@@ -126,7 +116,7 @@ def export_digest(
     user: User = Depends(get_current_user),
     session: Session = Depends(get_db),
 ) -> Response:
-    """One person's weekly digest as CSV (audited like every other export).
+    """One person's weekly digest as CSV.
 
     Employees can export their own week (transparency right); an admin may
     export one person's week — same scoping as GET /activity/digest. The file
@@ -144,13 +134,6 @@ def export_digest(
                 detail=f"{week} is not a valid ISO week (expected e.g. 2026-W43)",
             )
     digest = queries.weekly_digest(session, target.id, monday)
-
-    record_audit(
-        session, user.id, "export.csv",
-        target_type="digest",
-        detail={"week": digest.week, "user": digest.user_email, "role": user.role.value},
-    )
-    session.commit()
 
     local_part = digest.user_email.split("@")[0] or "user"
     return Response(

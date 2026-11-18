@@ -8,7 +8,6 @@ from sqlmodel import Session, select
 
 from app.core.time import utcnow
 from app.domain.capture.shadow import normalize_domain
-from app.models.alert import Alert
 from app.models.interaction import CapturedInteraction
 from app.models.user import User
 from app.schemas.analytics import (
@@ -42,13 +41,6 @@ def usage_summary(session: Session, days: int = 30, user_id: UUID | None = None)
             func.coalesce(func.sum(_blocked_expr()), 0),
             func.count(func.distinct(CapturedInteraction.user_id)),
         ).where(*scope)
-    ).one()
-
-    alert_scope = [Alert.created_at >= since]
-    if user_id is not None:
-        alert_scope.append(Alert.user_id == user_id)
-    alert_count = session.exec(
-        select(func.count()).select_from(Alert).where(*alert_scope)
     ).one()
 
     shadow_q = [CapturedInteraction.occurred_at >= since,
@@ -114,7 +106,6 @@ def usage_summary(session: Session, days: int = 30, user_id: UUID | None = None)
             interactions=int(totals_row[0]),
             flagged=int(totals_row[1]),
             blocked=int(totals_row[2]),
-            alerts=int(alert_count),
             shadow_domains=int(shadow_count),
             active_users=int(totals_row[3]),
         ),

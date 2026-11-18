@@ -108,7 +108,6 @@ export interface UsageTotals {
   interactions: number;
   flagged: number;
   blocked: number;
-  alerts: number;
   shadow_domains: number;
   active_users: number;
 }

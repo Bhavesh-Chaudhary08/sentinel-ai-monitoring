@@ -38,20 +38,6 @@ class PolicyAction(str, Enum):
     block = "block"
 
 
-class AlertSeverity(str, Enum):
-    low = "low"
-    medium = "medium"
-    high = "high"
-    critical = "critical"
-
-
-class AlertStatus(str, Enum):
-    triggered = "triggered"
-    acknowledged = "acknowledged"
-    resolved = "resolved"
-    false_positive = "false_positive"
-
-
 class ClassificationStatus(str, Enum):
     pending = "pending"
     complete = "complete"
