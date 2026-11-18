@@ -6,7 +6,6 @@ const ADMIN_LINKS = [
   { to: "/activity", label: "Browser time" },
   { to: "/interactions", label: "Interactions" },
   { to: "/shadow", label: "Shadow AI" },
-  { to: "/policies", label: "Policies" },
   { to: "/users", label: "Users" },
 ];
 

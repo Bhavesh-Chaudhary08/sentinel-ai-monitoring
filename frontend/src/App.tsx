@@ -10,7 +10,6 @@ import MyDigest from "./pages/employee/MyDigest";
 import Activity from "./pages/admin/Activity";
 import Interactions from "./pages/admin/Interactions";
 import Analytics from "./pages/admin/Analytics";
-import Policies from "./pages/admin/Policies";
 import ShadowAI from "./pages/admin/ShadowAI";
 import Users from "./pages/admin/Users";
 
@@ -72,7 +71,6 @@ export default function App() {
               element={<RequireAdmin><Interactions /></RequireAdmin>}
             />
             <Route path="/shadow" element={<RequireAdmin><ShadowAI /></RequireAdmin>} />
-            <Route path="/policies" element={<RequireAdmin><Policies /></RequireAdmin>} />
             <Route path="/users" element={<RequireAdmin><Users /></RequireAdmin>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
