@@ -69,6 +69,12 @@ RULES = [
 
 
 def upsert_users(session: Session) -> list[str]:
+    # Bootstrap only: demo accounts are seeded into an EMPTY user table. Once
+    # any account exists (including a lone admin after a data reset) the demo
+    # cast is never recreated, so a hand-over stays clean across redeploys.
+    if session.exec(select(User).limit(1)).first() is not None:
+        return []
+
     created: list[str] = []
     for email, name, password, role, department, job_title, device, consented in USERS:
         user = session.exec(select(User).where(User.email == email)).first()

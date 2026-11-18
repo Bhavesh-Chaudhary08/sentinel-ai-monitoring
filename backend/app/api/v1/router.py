@@ -11,6 +11,7 @@ from app.api.v1 import (
     capture,
     export,
     interactions,
+    maintenance,
     meta,
     policy,
     users,
@@ -28,5 +29,6 @@ api_router.include_router(alerts.router)
 api_router.include_router(analytics.router)
 api_router.include_router(export.router)
 api_router.include_router(users.router)
+api_router.include_router(maintenance.router)
 api_router.include_router(audit.router)
 api_router.include_router(ws.router)
