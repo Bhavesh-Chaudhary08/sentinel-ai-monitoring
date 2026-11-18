@@ -4,6 +4,8 @@ Run:  python -m app.db.seed
   or: docker compose --profile tools run --rm seed
 """
 
+import os
+
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -101,8 +103,23 @@ def upsert_rules(session: Session) -> list[str]:
     return created
 
 
+def demo_seeding_disabled() -> bool:
+    """SEED_DEMO_USERS=false keeps a wiped database clean.
+
+    The hosted image runs this seeder on every boot, so without the switch a
+    reset (admin-only, no demo accounts) would be silently undone on the next
+    deploy.
+    """
+    return os.environ.get("SEED_DEMO_USERS", "true").strip().lower() in {
+        "0", "false", "no", "off",
+    }
+
+
 def main() -> None:
     init_db()  # no-op if Alembic already created the schema
+    if demo_seeding_disabled():
+        print("SEED_DEMO_USERS=false — demo accounts left untouched")
+        return
     with Session(engine) as session:
         new_users = upsert_users(session)
         new_rules = upsert_rules(session)
