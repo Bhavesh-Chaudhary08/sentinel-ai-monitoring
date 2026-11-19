@@ -37,7 +37,7 @@ export class ApiError extends Error {
 }
 
 /** Loopback bases belong to a dev machine, never to a shared/hosted build. */
-function isLoopbackBase(base: string): boolean {
+export function isLoopbackBase(base: string): boolean {
   return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\/|:|\/|$)/i.test(base);
 }
 

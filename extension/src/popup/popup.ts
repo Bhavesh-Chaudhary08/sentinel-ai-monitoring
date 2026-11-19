@@ -1,7 +1,7 @@
 // Popup: the employee-facing transparency surface.
 // Three states: signed out → consent prompt → monitoring active.
 
-import { api, getToken } from "../api/client";
+import { api, getApiBase, getToken, isLoopbackBase } from "../api/client";
 import type { StatusResponse } from "../shared/types";
 
 const $ = <T extends HTMLElement>(sel: string): T => document.querySelector(sel) as T;
@@ -14,11 +14,20 @@ const views = {
 };
 
 // Single source of truth for where the dashboard lives. Baked in at build
-// time (PUBLIC_DASHBOARD_URL) so a shared build opens YOUR hosted dashboard;
-// falls back to the Vite dev server for local builds (use
-// http://localhost:3000 when running the compose stack, its FRONTEND_PORT).
-const DASHBOARD_URL = __PUBLIC_DASHBOARD_URL__ || "http://localhost:5173";
-const REGISTER_URL = `${DASHBOARD_URL}/register`;
+// time (PUBLIC_DASHBOARD_URL) so a shared build opens YOUR hosted dashboard.
+// An unstamped build must still not send people to a dead localhost: when the
+// extension is talking to a hosted backend, the dashboard is that same origin.
+// Only a genuinely local API falls back to the Vite dev server.
+async function resolveDashboardUrl(): Promise<string> {
+  if (__PUBLIC_DASHBOARD_URL__) return __PUBLIC_DASHBOARD_URL__.replace(/\/+$/, "");
+  try {
+    const base = await getApiBase();
+    if (!isLoopbackBase(base)) return new URL(base).origin;
+  } catch {
+    /* fall through to the dev default */
+  }
+  return "http://localhost:5173";
+}
 
 function show(name: keyof typeof views): void {
   Object.entries(views).forEach(([key, el]) => el.classList.toggle("hidden", key !== name));
@@ -130,16 +139,19 @@ $("#dashboard-btn").addEventListener("click", async () => {
   // sent to the server, stripped from the URL on load). Without it the
   // website opens as whichever account was last signed in there — e.g. the
   // admin — instead of the user looking at the popup right now.
+  const dashboard = await resolveDashboardUrl();
   const token = await getToken();
   const url = token
-    ? `${DASHBOARD_URL}/#ext_token=${encodeURIComponent(token)}`
-    : DASHBOARD_URL;
+    ? `${dashboard}/#ext_token=${encodeURIComponent(token)}`
+    : dashboard;
   void chrome.tabs.create({ url });
 });
 
 // No sign-up inside the popup — account creation lives on the dashboard.
 $("#register-link").addEventListener("click", () => {
-  void chrome.tabs.create({ url: REGISTER_URL });
+  void resolveDashboardUrl().then((dashboard) =>
+    chrome.tabs.create({ url: `${dashboard}/register` }),
+  );
 });
 
 $("#logout-btn").addEventListener("click", async () => {
