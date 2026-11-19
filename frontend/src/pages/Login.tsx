@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import BrandMark from "../components/BrandMark";
 
 export default function Login() {
   const { login } = useAuth();
@@ -29,7 +30,10 @@ export default function Login() {
   return (
     <div className="center-screen">
       <form className="card login-card" onSubmit={onSubmit}>
-        <h1>🛡️ AI Usage Monitor</h1>
+        <h1>
+          <span className="auth-mark"><BrandMark /></span>
+          Sign in to Sentinel
+        </h1>
         <p className="muted">
           Admin console &amp; employee self-view. Monitoring runs only on
           enrolled, consented accounts.
@@ -57,11 +61,12 @@ export default function Login() {
         <button type="submit" disabled={busy}>
           {busy ? "Signing in…" : "Sign in"}
         </button>
-        <p className="muted tiny">
+        <p className="auth-foot">
           No account yet? <Link to="/register">Register</Link>
-        </p>
-        <p className="muted tiny">
-          Demo: admin@corp.example / Admin@12345 · alice@corp.example / Employee@123
+          <br />
+          Demo · <code>admin@corp.example</code> / <code>Admin@12345</code>
+          <br />
+          Demo · <code>alice@corp.example</code> / <code>Employee@123</code>
         </p>
       </form>
     </div>

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import BrandMark from "../components/BrandMark";
 
 export default function Register() {
   const { register } = useAuth();
@@ -41,7 +42,10 @@ export default function Register() {
   return (
     <div className="center-screen">
       <form className="card login-card" onSubmit={onSubmit}>
-        <h1>🛡️ Create your account</h1>
+        <h1>
+          <span className="auth-mark"><BrandMark /></span>
+          Create your account
+        </h1>
         <p className="muted">
           New accounts are created as <strong>employees</strong>. Monitoring only
           starts after you accept the consent notice in the extension.
@@ -98,7 +102,7 @@ export default function Register() {
         <button type="submit" disabled={busy}>
           {busy ? "Creating account…" : "Create account"}
         </button>
-        <p className="muted tiny">
+        <p className="auth-foot">
           Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </form>

@@ -17,16 +17,23 @@ import {
 import { api, type UsageOut } from "../../api/client";
 import { CategoryBadge } from "../../components/RiskBadge";
 
-const TOOL_COLORS = ["#38bdf8", "#22c55e", "#f59e0b", "#a78bfa", "#ef4444", "#64748b"];
+const TOOL_COLORS = ["#00e599", "#3ecfff", "#a78bfa", "#f5b544", "#ff6b6b", "#6a6f77"];
 const CATEGORY_COLORS: Record<string, string> = {
-  none: "#64748b",
+  none: "#6a6f77",
   pii: "#a78bfa",
-  source_code: "#38bdf8",
-  financial: "#f59e0b",
-  confidential: "#ef4444",
-  credentials: "#ef4444",
-  other: "#94a3b8",
+  source_code: "#3ecfff",
+  financial: "#f5b544",
+  confidential: "#ff6b6b",
+  credentials: "#ff6b6b",
+  other: "#8c929a",
 };
+const TOOLTIP_STYLE = {
+  background: "#121316",
+  border: "1px solid #26282c",
+  borderRadius: 8,
+  fontSize: 12,
+  color: "#e6e8eb",
+} as const;
 
 export default function Analytics() {
   const [days, setDays] = useState(30);
@@ -81,21 +88,21 @@ export default function Analytics() {
           <AreaChart data={usage?.by_day ?? []}>
             <defs>
               <linearGradient id="totalG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+                <stop offset="5%" stopColor="#00e599" stopOpacity={0.32} />
+                <stop offset="95%" stopColor="#00e599" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="flagG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.45} />
-                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                <stop offset="5%" stopColor="#ff6b6b" stopOpacity={0.4} />
+                <stop offset="95%" stopColor="#ff6b6b" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#24304d" strokeDasharray="3 3" />
-            <XAxis dataKey="date" stroke="#8fa1bf" fontSize={11} />
-            <YAxis stroke="#8fa1bf" fontSize={11} allowDecimals={false} />
-            <Tooltip contentStyle={{ background: "#111a2c", border: "1px solid #24304d" }} />
-            <Area type="monotone" dataKey="total" stroke="#38bdf8" fill="url(#totalG)" />
-            <Area type="monotone" dataKey="flagged" stroke="#ef4444" fill="url(#flagG)" />
-            <Area type="monotone" dataKey="blocked" stroke="#f59e0b" fill="none" />
+            <CartesianGrid stroke="#1c1d20" strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="date" stroke="#3a3d42" tick={{ fill: "#6a6f77" }} fontSize={11} />
+            <YAxis stroke="#3a3d42" tick={{ fill: "#6a6f77" }} fontSize={11} allowDecimals={false} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ stroke: "#2a2c30" }} />
+            <Area type="monotone" dataKey="total" stroke="#00e599" strokeWidth={2} fill="url(#totalG)" />
+            <Area type="monotone" dataKey="flagged" stroke="#ff6b6b" strokeWidth={1.5} fill="url(#flagG)" />
+            <Area type="monotone" dataKey="blocked" stroke="#f5b544" strokeWidth={1.5} fill="none" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -135,7 +142,7 @@ export default function Analytics() {
                 ))}
               </Pie>
               <Legend />
-              <Tooltip contentStyle={{ background: "#111a2c", border: "1px solid #24304d" }} />
+              <Tooltip contentStyle={TOOLTIP_STYLE} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -145,13 +152,13 @@ export default function Analytics() {
         <h2>Risk categories</h2>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={usage?.by_category ?? []}>
-            <CartesianGrid stroke="#24304d" strokeDasharray="3 3" />
-            <XAxis dataKey="key" stroke="#8fa1bf" fontSize={11} />
-            <YAxis stroke="#8fa1bf" fontSize={11} allowDecimals={false} />
-            <Tooltip contentStyle={{ background: "#111a2c", border: "1px solid #24304d" }} />
-            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+            <CartesianGrid stroke="#1c1d20" strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="key" stroke="#3a3d42" tick={{ fill: "#6a6f77" }} fontSize={11} />
+            <YAxis stroke="#3a3d42" tick={{ fill: "#6a6f77" }} fontSize={11} allowDecimals={false} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+            <Bar dataKey="count" radius={[5, 5, 0, 0]}>
               {(usage?.by_category ?? []).map((entry) => (
-                <Cell key={entry.key} fill={CATEGORY_COLORS[entry.key] ?? "#64748b"} />
+                <Cell key={entry.key} fill={CATEGORY_COLORS[entry.key] ?? "#6a6f77"} />
               ))}
             </Bar>
           </BarChart>
