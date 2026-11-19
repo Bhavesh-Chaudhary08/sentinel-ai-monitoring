@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { api, type Interaction, type InteractionDetail } from "../api/client";
 import { ActionBadge, CategoryBadge, RiskBadge, ScoreBadge } from "./RiskBadge";
 
@@ -73,6 +74,18 @@ export function InteractionDetailModal({
   const [detail, setDetail] = useState<InteractionDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // The page wrapper animates with a transform, which makes `position: fixed`
+  // resolve against the page instead of the viewport — the backdrop then grows
+  // with the table and the dialog sits mid-page. Portalling to <body> pins the
+  // overlay to the window; background scrolling is locked while it is open.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     api
@@ -84,7 +97,7 @@ export function InteractionDetailModal({
     };
   }, [interactionId]);
 
-  return (
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal detail-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
@@ -181,6 +194,7 @@ export function InteractionDetailModal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
