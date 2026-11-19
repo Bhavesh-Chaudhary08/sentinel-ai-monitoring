@@ -86,7 +86,7 @@ export function InteractionDetailModal({
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal detail-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <h2>Interaction detail</h2>
           <button className="small ghost" onClick={onClose}>Close</button>
@@ -96,7 +96,9 @@ export function InteractionDetailModal({
         {!detail && !error && <p className="muted">Loading…</p>}
 
         {detail && (
-          <>
+          <div className="modal-body detail-grid">
+            <section>
+            <h3 className="section-label">Metadata</h3>
             <dl className="kv">
               <dt>User</dt><dd>{detail.user_email ?? detail.user_id}</dd>
               <dt>Tool / domain</dt><dd>{detail.ai_tool} · {detail.domain}{detail.page_path ?? ""}</dd>
@@ -133,8 +135,10 @@ export function InteractionDetailModal({
               </dd>
               <dt>Prompt hash</dt><dd className="tiny">{detail.prompt_hash ?? "—"}</dd>
             </dl>
+            </section>
 
-            <h2 style={{ marginTop: 18 }}>Why it was flagged</h2>
+            <section>
+            <h3 className="section-label">Why it was flagged</h3>
             {detail.findings.length ? (
               <div className="table-wrap">
                 <table>
@@ -159,17 +163,22 @@ export function InteractionDetailModal({
 
             {detail.prompt_text && (
               <>
-                <h2 style={{ marginTop: 18 }}>Stored prompt text (flagged)</h2>
+                <h3 className="section-label" style={{ marginTop: 16 }}>
+                  Stored prompt text (flagged)
+                </h3>
                 <div className="code-block">{detail.prompt_text}</div>
               </>
             )}
             {detail.response_text && (
               <>
-                <h2 style={{ marginTop: 18 }}>Stored response text (flagged)</h2>
+                <h3 className="section-label" style={{ marginTop: 16 }}>
+                  Stored response text (flagged)
+                </h3>
                 <div className="code-block">{detail.response_text}</div>
               </>
             )}
-          </>
+            </section>
+          </div>
         )}
       </div>
     </div>
